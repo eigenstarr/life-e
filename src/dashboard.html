@@ -1,0 +1,804 @@
+<title>Life Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app shell, quiet graphite chrome, one rich moment (the day strip), golf-scorecard week view */
+:root {
+  --bg: #fafafa; --side: #f4f4f5; --card: #ffffff; --raised: #f4f4f5;
+  --text: #171717; --text-2: #525252; --muted: #6f6f73;
+  --line: rgba(23, 23, 23, 0.08); --line-2: rgba(23, 23, 23, 0.14);
+  --accent: #1f7a4a; --on-accent: #ffffff;
+  --pos: #16a34a;
+  --c-school: #b4b4ba; --c-routine: #e1e1e5; --c-gym: #c2563a; --c-golf: #2f8a57;
+  --c-sat: #3a5fc8; --c-work: #c48a14; --c-free: #c9b48c; --c-sleep: #3f3f46;
+  --seg-ink: #ffffff; --seg-ink-soft: #3f3f46;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141415; --side: #0f0f10; --card: #19191b; --raised: #232325;
+    --text: #ededed; --text-2: #a1a1a6; --muted: #85858b;
+    --line: rgba(237, 237, 237, 0.08); --line-2: rgba(237, 237, 237, 0.14);
+    --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a;
+    --c-school: #55555c; --c-routine: #313135; --c-gym: #df7353; --c-golf: #4cb07a;
+    --c-sat: #7393f2; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
+    --seg-ink: #0f0f10; --seg-ink-soft: #d4d4d8;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141415; --side: #0f0f10; --card: #19191b; --raised: #232325;
+  --text: #ededed; --text-2: #a1a1a6; --muted: #85858b;
+  --line: rgba(237, 237, 237, 0.08); --line-2: rgba(237, 237, 237, 0.14);
+  --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a;
+  --c-school: #55555c; --c-routine: #313135; --c-gym: #df7353; --c-golf: #4cb07a;
+  --c-sat: #7393f2; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
+  --seg-ink: #0f0f10; --seg-ink-soft: #d4d4d8;
+  --shadow: none; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--sans); font-size: 14px; line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Shell */
+.shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+.side {
+  background: var(--side); border-right: 1px solid var(--line);
+  padding: 20px 16px; display: flex; flex-direction: column; gap: 24px;
+  position: sticky; top: 0; height: 100vh;
+}
+.brand { display: flex; align-items: baseline; gap: 8px; padding: 4px 8px; }
+.brand b { font-size: 17px; font-weight: 600; line-height: 1; }
+.brand span { color: var(--muted); font-size: 12px; }
+.nav-label { color: var(--muted); font-size: 12px; padding: 0 8px; margin-bottom: 8px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav a {
+  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 8px;
+  border-radius: 8px; color: var(--text-2); text-decoration: none; font-weight: 500;
+  transition: background-color 150ms var(--ease), color 150ms var(--ease);
+}
+.nav a svg { color: var(--muted); }
+.nav a:hover { background: var(--raised); color: var(--text); }
+.nav a[aria-current="true"] { background: var(--raised); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 0 8px; color: var(--muted); font-size: 12px; line-height: 16px; }
+.side-foot div { display: flex; align-items: center; gap: 8px; }
+
+.main {
+  padding-block: 32px 64px;
+  padding-left: max(32px, env(safe-area-inset-left, 0px));
+  padding-right: max(32px, env(safe-area-inset-right, 0px));
+  min-width: 0;
+}
+.wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 32px; line-height: 1.15; font-weight: 500; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 .yr { color: var(--muted); }
+.sub { color: var(--text-2); margin-top: 8px; }
+.clock { font-family: var(--mono); color: var(--text-2); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+h2 { font-size: 15px; font-weight: 500; margin: 0; line-height: 20px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow); padding: 24px; min-width: 0;
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.meta { color: var(--muted); font-size: 12px; line-height: 16px; font-family: var(--mono); }
+
+/* Summary row */
+.summary { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 2fr); gap: 16px; }
+.now { display: flex; flex-direction: column; gap: 16px; }
+.now-label { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--c); }
+.now-title { font-size: 24px; line-height: 30px; font-weight: 500; text-wrap: balance; }
+.bar { height: 6px; background: var(--raised); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transform-origin: left; }
+.now-foot { display: flex; justify-content: space-between; gap: 12px; color: var(--text-2); flex-wrap: wrap; }
+.now-next { padding-top: 16px; border-top: 1px solid var(--line); display: flex; gap: 8px; align-items: center; color: var(--text-2); }
+.now-next b { color: var(--text); font-weight: 500; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.stat { padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.stat .lab { color: var(--text-2); }
+.stat .fig { font-size: 30px; line-height: 1; font-weight: 500; font-variant-numeric: tabular-nums; }
+.stat .fig small { font-size: 15px; color: var(--muted); font-weight: 400; }
+.stat .chg { font-family: var(--mono); font-size: 12px; line-height: 16px; color: var(--muted); }
+.stat .chg.ok { color: var(--pos); }
+
+/* Day strip — the moment */
+.tabs { display: flex; gap: 2px; padding: 2px; background: var(--raised); border-radius: 10px; overflow-x: auto; max-width: 100%; }
+.tabs button {
+  font: inherit; font-weight: 500; color: var(--text-2); background: transparent; border: 0;
+  height: 30px; padding: 0 12px; border-radius: 8px; cursor: pointer; position: relative;
+  transition: background-color 150ms var(--ease), color 150ms var(--ease);
+}
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] { background: var(--card); color: var(--text); box-shadow: inset 0 0 0 1px var(--line), var(--shadow); }
+.tabs button .today-mark { position: absolute; left: 50%; bottom: 3px; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; background: var(--accent); }
+
+.strip-wrap { position: relative; padding-top: 28px; }
+.strip { position: relative; height: 56px; border-radius: 10px; overflow: hidden; background: var(--raised); }
+.seg {
+  position: absolute; top: 0; bottom: 0; background: var(--c);
+  border-right: 2px solid var(--card);
+  display: flex; align-items: center; padding: 0 8px; overflow: hidden;
+  font-size: 12px; font-weight: 500; color: var(--seg-ink); white-space: nowrap;
+}
+.seg.soft { color: var(--seg-ink-soft); }
+.seg.done::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,0.18) 5px 6px); }
+.seg.past:not(.done) { opacity: 0.55; }
+.axis { position: relative; height: 20px; margin-top: 8px; }
+.axis span { position: absolute; transform: translateX(-50%); font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.axis span:first-child { transform: none; }
+.axis span:last-child { transform: translateX(-100%); }
+.pin { position: absolute; top: 4px; bottom: 28px; width: 0; border-left: 1.5px solid var(--text); pointer-events: none; }
+.pin svg { position: absolute; top: -2px; left: -1px; width: 14px; height: 12px; }
+.pin svg path { fill: var(--text); }
+.pin .t { position: absolute; top: -2px; left: 16px; font-family: var(--mono); font-size: 11px; line-height: 12px; color: var(--text); white-space: nowrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; color: var(--text-2); font-size: 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.blocks { margin-top: 24px; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+.row {
+  display: grid; grid-template-columns: 112px 8px minmax(0, 1fr) 20px; align-items: center; gap: 12px;
+  min-height: 44px; padding: 8px 0; border-bottom: 1px solid var(--line);
+}
+.row .tm { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.row .lb { min-width: 0; }
+.row.cur .lb { font-weight: 500; }
+.row.cur .tm { color: var(--accent); }
+.row.done .lb { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-2); }
+input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.note { margin-top: 16px; color: var(--muted); font-size: 13px; }
+
+/* Training + SAT */
+.pair { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.focus { color: var(--text-2); margin: 0 0 20px; }
+.ex { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 44px; border-bottom: 1px solid var(--line); padding: 8px 0; }
+.ex:first-of-type { border-top: 1px solid var(--line); }
+.ex .nm { min-width: 0; }
+.ex .nm small { display: block; color: var(--muted); font-size: 12px; line-height: 16px; }
+.ex .sr { font-family: var(--mono); font-size: 12px; color: var(--text-2); white-space: nowrap; }
+.ex.done .nm { color: var(--muted); }
+.sub-h { display: flex; align-items: center; gap: 8px; color: var(--text-2); margin: 24px 0 12px; font-weight: 500; }
+.sub-h:first-child { margin-top: 0; }
+.steps { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.steps li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.steps li:first-child { border-top: 1px solid var(--line); }
+.steps .mono { color: var(--muted); font-size: 12px; }
+
+.topic { font-size: 20px; line-height: 26px; font-weight: 500; margin-bottom: 4px; text-wrap: balance; }
+.topic-sub { color: var(--text-2); margin-bottom: 20px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px;
+  font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid transparent;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease), transform 120ms var(--ease);
+}
+.btn:active { transform: scale(0.98); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.secondary { background: var(--raised); color: var(--text); border-color: var(--line); }
+.btn.secondary:hover { border-color: var(--line-2); }
+.links { list-style: none; padding: 0; margin: 0; }
+.links a {
+  display: grid; grid-template-columns: minmax(0, 1fr) 16px; gap: 12px; align-items: center;
+  padding: 10px 8px; margin: 0 -8px; border-radius: 8px; text-decoration: none;
+  transition: background-color 150ms var(--ease);
+}
+.links a:hover { background: var(--raised); }
+.links a small { display: block; color: var(--muted); font-size: 12px; line-height: 16px; }
+.links a svg { color: var(--muted); }
+
+/* Week scorecard */
+.scroll { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
+table.score { width: 100%; border-collapse: collapse; min-width: 560px; font-variant-numeric: tabular-nums; }
+.score th, .score td { text-align: center; height: 44px; border-bottom: 1px solid var(--line); padding: 0 8px; }
+.score th { font-weight: 400; color: var(--muted); font-size: 12px; font-family: var(--mono); height: 36px; }
+.score th:first-child, .score td:first-child { text-align: left; padding-left: 0; }
+.score td:first-child b { font-weight: 500; }
+.score td:first-child span { color: var(--muted); font-family: var(--mono); font-size: 12px; margin-left: 8px; }
+.score tr.is-today td { background: var(--raised); }
+.score tr.is-today td:first-child { box-shadow: inset 2px 0 0 var(--accent); padding-left: 12px; }
+.score tfoot td { border-bottom: 0; font-family: var(--mono); font-size: 13px; color: var(--text); }
+.score tfoot td:first-child { font-family: var(--sans); color: var(--text-2); font-size: 14px; }
+.cell {
+  width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--line-2); background: transparent;
+  display: inline-grid; place-items: center; cursor: pointer; color: var(--on-accent); padding: 0;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.cell:hover { border-color: var(--accent); }
+.cell[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.cell svg { width: 14px; height: 14px; stroke-width: 2; opacity: 0; }
+.cell[aria-pressed="true"] svg { opacity: 1; }
+.cell + .cell { margin-left: 4px; }
+.dash { color: var(--muted); }
+
+section { scroll-margin-top: 24px; }
+
+@media (max-width: 1080px) {
+  .summary, .pair { grid-template-columns: minmax(0, 1fr); }
+  .blocks { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .side {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; height: auto; flex-direction: row; align-items: center; gap: 12px;
+    padding-block: 10px; border-right: 0; border-bottom: 1px solid var(--line);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--side); }
+  .side .nav-label, .side-foot, .brand span { display: none; }
+  .side > div:nth-child(2) { min-width: 0; overflow-x: auto; }
+  .nav { flex-direction: row; }
+  .nav a { height: 32px; white-space: nowrap; }
+  .nav a svg { display: none; }
+  .main { padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 28px; }
+  .card { padding: 20px; }
+  .scroll { margin: 0 -20px; padding: 0 20px; }
+  .stats { gap: 12px; }
+  .stat { padding: 16px; }
+  .stat .fig { font-size: 26px; }
+  .seg { font-size: 0; padding: 0; }
+  .row { grid-template-columns: 96px 8px minmax(0, 1fr) 20px; gap: 10px; }
+  .axis span:nth-child(even) { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wrap > * { animation: rise 420ms var(--ease) both; }
+  .wrap > *:nth-child(2) { animation-delay: 50ms; }
+  .wrap > *:nth-child(3) { animation-delay: 100ms; }
+  .wrap > *:nth-child(4) { animation-delay: 150ms; }
+  @keyframes rise { from { opacity: 0.001; transform: translateY(8px); } }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M3 10l7-7M14 21l7-7"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 3l14 9-14 9z"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+</svg>
+
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><b>Life</b><span>week planner</span></div>
+    <div>
+      <div class="nav-label">Navigation</div>
+      <nav class="nav" id="nav">
+        <a href="#today" aria-current="true"><svg class="i"><use href="#i-sun"/></svg>Today</a>
+        <a href="#training"><svg class="i"><use href="#i-dumbbell"/></svg>Training</a>
+        <a href="#sat"><svg class="i"><use href="#i-book"/></svg>SAT</a>
+        <a href="#week"><svg class="i"><use href="#i-grid"/></svg>Week</a>
+      </nav>
+    </div>
+    <div class="side-foot">
+      <div><svg class="i"><use href="#i-moon"/></svg><span id="sideSleep">Lights out 10:00 PM</span></div>
+      <div><svg class="i"><use href="#i-flag"/></svg><span>4 gym · 4 golf · 7 h SAT</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+      <header class="top">
+        <div>
+          <h1 id="title">Today</h1>
+          <div class="sub" id="subtitle"></div>
+        </div>
+        <div class="clock" id="clock"></div>
+      </header>
+
+      <div class="summary">
+        <div class="card now" id="now"></div>
+        <div class="stats" id="stats"></div>
+      </div>
+
+      <section class="card" id="today">
+        <div class="card-head">
+          <h2 id="dayTitle">Schedule</h2>
+          <div class="tabs" role="tablist" id="tabs"></div>
+        </div>
+        <div class="strip-wrap" id="stripWrap"></div>
+        <div class="legend" id="legend"></div>
+        <div class="blocks" id="blocks"></div>
+        <div class="note" id="dayNote"></div>
+      </section>
+
+      <div class="pair">
+        <section class="card" id="training"></section>
+        <section class="card" id="sat"></section>
+      </div>
+
+      <section class="card" id="week">
+        <div class="card-head">
+          <h2>Week scorecard</h2>
+          <span class="meta" id="weekRange"></span>
+        </div>
+        <div class="scroll"><table class="score" id="score"></table></div>
+        <div class="note">Tap a circle to mark a session done. Checking a block in the schedule does the same thing.</div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const DAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const ORDER = [1, 2, 3, 4, 5, 6, 0];
+  const AXIS_START = 6 * 60, AXIS_END = 24 * 60;
+
+  const CAT = {
+    school:  { name: 'School', short: 'School' },
+    gym:     { name: 'Gym', short: 'Gym' },
+    golf:    { name: 'Golf', short: 'Golf' },
+    sat:     { name: 'SAT', short: 'SAT' },
+    work:    { name: 'Homework / app', short: 'HW / app' },
+    free:    { name: 'Free time', short: 'Free' },
+    routine: { name: 'Meals and breaks', short: '' },
+    sleep:   { name: 'Sleep', short: 'Sleep' },
+  };
+  const TRACK = ['gym', 'golf', 'sat', 'work'];
+
+  const B = (s, e, label, cat) => ({ s: tm(s), e: tm(e), label, cat });
+  function tm(x) { const [h, m] = x.split(':').map(Number); return h * 60 + m; }
+
+  const gymDay = (snack, last) => [
+    B('6:00', '16:00', 'Morning routine and school', 'school'),
+    B('16:00', '16:20', snack, 'routine'),
+    B('16:20', '17:35', 'Gym, including transportation', 'gym'),
+    B('17:35', '18:00', 'Shower', 'routine'),
+    B('18:00', '19:00', 'SAT studying', 'sat'),
+    B('19:00', '19:45', 'Dinner', 'routine'),
+    B('19:45', '21:15', 'Homework or app development', 'work'),
+    B('21:15', '22:00', last, 'free'),
+    B('22:00', '30:00', 'Sleep', 'sleep'),
+  ];
+
+  const SCHED = {
+    1: gymDay('Snack, relax, change', 'Prepare for tomorrow, relax'),
+    2: [
+      B('6:00', '16:00', 'Morning routine and school', 'school'),
+      B('16:00', '16:20', 'Snack, change, prepare golf equipment', 'routine'),
+      B('16:20', '18:20', 'Driving range and transportation', 'golf'),
+      B('18:20', '18:40', 'Shower', 'routine'),
+      B('18:40', '19:40', 'SAT studying', 'sat'),
+      B('19:40', '20:20', 'Dinner', 'routine'),
+      B('20:20', '21:30', 'Homework or app development', 'work'),
+      B('21:30', '22:00', 'Relax, prepare for bed', 'free'),
+      B('22:00', '30:00', 'Sleep', 'sleep'),
+    ],
+    3: gymDay('Snack and relax', 'Prepare for tomorrow, relax'),
+    4: gymDay('Snack and change', 'Relax'),
+    5: [
+      B('6:00', '16:00', 'Morning routine and school', 'school'),
+      B('16:00', '16:20', 'Snack and change', 'routine'),
+      B('16:20', '18:20', 'Driving range and transportation', 'golf'),
+      B('18:20', '18:40', 'Shower', 'routine'),
+      B('18:40', '19:40', 'SAT studying', 'sat'),
+      B('19:40', '20:30', 'Dinner', 'routine'),
+      B('20:30', '21:30', 'Homework or app development', 'work'),
+      B('21:30', '22:30', 'Free time and relaxation', 'free'),
+      B('22:30', '32:00', 'Sleep', 'sleep'),
+    ],
+    6: [
+      B('8:00', '8:30', 'Wake up, breakfast', 'routine'),
+      B('8:30', '10:30', 'Golf and transportation', 'golf'),
+      B('10:30', '11:00', 'Shower and relax', 'routine'),
+      B('11:00', '12:00', 'SAT studying', 'sat'),
+      B('12:00', '13:00', 'Lunch and break', 'routine'),
+      B('13:00', '15:00', 'App development', 'work'),
+      B('15:00', '16:15', 'Gym, including transportation', 'gym'),
+      B('16:15', '17:00', 'Shower and relax', 'routine'),
+      B('17:00', '19:00', 'Free time or additional app development', 'free'),
+      B('19:00', '20:00', 'Dinner', 'routine'),
+      B('20:00', '23:00', 'Free time', 'free'),
+      B('23:00', '32:00', 'Sleep', 'sleep'),
+    ],
+    0: [
+      B('8:00', '8:30', 'Wake up, breakfast', 'routine'),
+      B('8:30', '10:30', 'Golf and transportation', 'golf'),
+      B('10:30', '11:00', 'Shower', 'routine'),
+      B('11:00', '12:00', 'SAT studying', 'sat'),
+      B('12:00', '13:00', 'Lunch', 'routine'),
+      B('13:00', '15:00', 'App development or homework', 'work'),
+      B('15:00', '17:00', 'Free time', 'free'),
+      B('17:00', '18:00', 'Finish homework and prepare for school', 'work'),
+      B('18:00', '19:00', 'Dinner', 'routine'),
+      B('19:00', '21:00', 'Relax, organize school materials', 'free'),
+      B('21:00', '22:00', 'Wind down', 'free'),
+      B('22:00', '30:00', 'Sleep', 'sleep'),
+    ],
+  };
+  Object.values(SCHED).forEach(list => list.forEach((b, i) => b.i = i));
+
+  const DAY_NOTE = {
+    5: 'Friday bedtime is ideally 10:00 to 11:00 PM. Try not to shift your sleep schedule too much.',
+    6: 'Bedtime around 11:00 PM still gives you 9 hours before an 8:00 AM wake-up.',
+  };
+  const GOLF_NOTE = 'Golf blocks assume about 30 minutes of round-trip driving. Adjust if the drive is longer.';
+
+  /* Gym program: 4 days, built around golf (rotation, hips, grip) */
+  const WORKOUT = {
+    1: { name: 'Upper body push and core', focus: 'Chest, shoulders and triceps, finishing with anti-rotation core work', ex: [
+      ['Warm-up', 'Bike or rower, then band pull-aparts and arm circles', '5 min'],
+      ['Bench press', 'Leave 1 to 2 reps in the tank', '4 × 6–8'],
+      ['Seated dumbbell shoulder press', '', '3 × 8–10'],
+      ['Incline dumbbell press', '', '3 × 10'],
+      ['Dips or close-grip push-ups', '', '3 × 10–12'],
+      ['Lateral raise', 'Light, slow on the way down', '3 × 12–15'],
+      ['Pallof press', 'Resist the twist, brace like address', '3 × 10 each side'],
+    ]},
+    3: { name: 'Lower body', focus: 'Legs and hips for a stable base and more speed through the ball', ex: [
+      ['Warm-up', 'Hip circles, bodyweight squats, leg swings', '5 min'],
+      ['Back squat or goblet squat', '', '4 × 6–8'],
+      ['Romanian deadlift', 'Feel the hamstrings, flat back', '3 × 8'],
+      ['Walking lunge', '', '3 × 10 each leg'],
+      ['Lying leg curl', '', '3 × 12'],
+      ['Standing calf raise', '', '3 × 15'],
+      ['Dead bug', 'Slow, low back stays down', '3 × 10 each side'],
+    ]},
+    4: { name: 'Upper body pull and rotation', focus: 'Back, biceps and grip, plus rotational power for the swing', ex: [
+      ['Warm-up', 'Band rows, open books, thoracic rotations', '5 min'],
+      ['Pull-ups', 'Use the assisted machine or a band if needed', '4 × 6–8'],
+      ['One-arm dumbbell row', '', '3 × 10 each arm'],
+      ['Lat pulldown', '', '3 × 10'],
+      ['Face pull', 'Good for posture and shoulder health', '3 × 15'],
+      ['Hammer curl', '', '3 × 10'],
+      ['Cable woodchop', 'Rotate from the hips, not the arms', '3 × 10 each side'],
+    ]},
+    6: { name: 'Full body power', focus: 'Explosive work after morning golf, keep the quality high and stop before you get sloppy', ex: [
+      ['Warm-up', 'Light jog, world’s greatest stretch, hip openers', '5 min'],
+      ['Trap bar deadlift', '', '4 × 5'],
+      ['Med ball rotational throw', 'Into a wall, both directions', '3 × 6 each side'],
+      ['Box jump', 'Step down, reset every rep', '3 × 5'],
+      ['Dumbbell split squat', '', '3 × 8 each leg'],
+      ['Push-ups', 'Stop one rep before failure', '3 × max'],
+      ['Farmer carry', 'Heavy, tall posture, grip strength', '3 × 30 m'],
+      ['Plank', '', '3 × 45 s'],
+    ]},
+  };
+  const MOBILITY = { name: 'Mobility', focus: 'No gym today. Ten minutes keeps your hips and upper back loose for the swing', ex: [
+    ['90/90 hip switches', '', '2 × 8 each side'],
+    ['Open books', 'Thoracic rotation on your side', '2 × 8 each side'],
+    ['Cat-cow', '', '2 × 10'],
+    ['Hip flexor stretch', '', '2 × 30 s each side'],
+  ]};
+  const GOLF = {
+    2: { name: 'Range session', steps: [
+      ['10 min', 'Warm up with half wedge swings'],
+      ['25 min', 'Wedge distance ladder: 50, 75 and 100 yards, 5 balls each'],
+      ['25 min', '7-iron with an alignment stick, pick a target for every ball'],
+      ['15 min', 'Driver: 10 balls into an imaginary fairway, count how many land in it'],
+      ['10 min', 'Putting green if there is one: 3, 6 and 9 foot putts'],
+    ]},
+    5: { name: 'Short game and range', steps: [
+      ['30 min', 'Chipping: up-and-down game from 5 different lies'],
+      ['20 min', 'Putting ladder: 3, 6, 9 feet, make 3 in a row before moving back'],
+      ['25 min', 'Range with mid irons, alternate draw and straight shots'],
+    ]},
+    6: { name: 'Play or simulate a round', steps: [
+      ['90 min', 'Play 9 holes if you can. Otherwise play a round on the range: change club and target every ball'],
+      ['After', 'Write down fairways, greens and putts to find next week’s weakness'],
+    ]},
+    0: { name: 'Fix this week’s weakness', steps: [
+      ['15 min', 'Warm up through the bag'],
+      ['45 min', 'Work on the weakest part from Saturday’s notes'],
+      ['20 min', 'Pressure putting: 10 putts from 4 feet, start over on a miss'],
+    ]},
+  };
+
+  /* SAT: one hour a day, 7 hours a week */
+  const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  const QBANK = 'https://satsuitequestionbank.collegeboard.org/';
+  const SAT = {
+    1: { area: 'Math', topic: 'Algebra', detail: 'Linear equations, systems and inequalities', q: 'digital SAT algebra linear equations systems' },
+    2: { area: 'Reading and Writing', topic: 'Craft and structure', detail: 'Words in context, text structure, cross-text connections', q: 'digital SAT words in context text structure' },
+    3: { area: 'Math', topic: 'Advanced math', detail: 'Quadratics, exponentials and functions', q: 'digital SAT advanced math quadratics functions' },
+    4: { area: 'Reading and Writing', topic: 'Standard English conventions', detail: 'Punctuation, sentence boundaries, verb forms', q: 'digital SAT grammar punctuation boundaries' },
+    5: { area: 'Reading and Writing', topic: 'Information and ideas', detail: 'Central ideas, command of evidence, inferences', q: 'digital SAT command of evidence inferences' },
+    6: { area: 'Math', topic: 'Data analysis and geometry', detail: 'Ratios, percentages, statistics, circles and triangles', q: 'digital SAT problem solving data analysis geometry' },
+    0: { area: 'Full practice', topic: 'Timed module and review', detail: 'One timed module in Bluebook, then go through every miss', q: 'digital SAT practice test review strategy' },
+  };
+  const SAT_STEPS = [
+    ['15 min', 'Watch one lesson on today’s topic'],
+    ['35 min', 'Practice questions in the Question Bank, timed'],
+    ['10 min', 'Write each miss in your mistake log and why you missed it'],
+  ];
+  const RESOURCES = [
+    ['Khan Academy digital SAT', 'Free lessons and practice, official partner', 'https://www.khanacademy.org/test-prep/digital-sat'],
+    ['SAT Suite Question Bank', 'Official College Board questions by topic', QBANK],
+    ['Bluebook practice tests', 'Full-length adaptive tests, same app as test day', 'https://satsuite.collegeboard.org/practice/practice-tests'],
+    ['Scalar Learning on YouTube', 'Math walk-throughs and Desmos shortcuts', yt('Scalar Learning digital SAT math')],
+    ['SupertutorTV on YouTube', 'Reading and writing strategy', yt('SupertutorTV digital SAT reading writing')],
+    ['Desmos calculator', 'Practice with the calculator built into the test', 'https://www.desmos.com/calculator'],
+  ];
+
+  /* Storage: per-browser convenience, safe if blocked */
+  const KEY = 'life-planner-v1';
+  let store = { done: {} };
+  try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign({ done: {} }, JSON.parse(raw)); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  const isDone = k => !!store.done[k];
+  function setDone(k, v) { if (v) store.done[k] = 1; else delete store.done[k]; save(); render(); }
+
+  /* Dates */
+  const pad = n => String(n).padStart(2, '0');
+  const keyOf = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  function weekStart(d) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
+  function dateFor(dow, now) { const x = weekStart(now); x.setDate(x.getDate() + ORDER.indexOf(dow)); return x; }
+  function weekNo(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); }
+  const blockKey = (dow, i, now) => keyOf(dateFor(dow, now)) + ':b' + i;
+  const exKey = (dow, i, now) => keyOf(dateFor(dow, now)) + ':x' + i;
+
+  function fmt(min, withAp = true) {
+    const m = ((min % 1440) + 1440) % 1440; let h = Math.floor(m / 60); const mm = m % 60;
+    const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+    return h + ':' + pad(mm) + (withAp ? ' ' + ap : '');
+  }
+  function rangeLabel(b) { return b.cat === 'sleep' ? fmt(b.s) : fmt(b.s, (b.s < 720) !== (b.e < 720)) + '–' + fmt(b.e); }
+  function dur(min) { const h = Math.floor(min / 60), m = min % 60; return (h ? h + ' h' : '') + (h && m ? ' ' : '') + (m ? m + ' min' : ''); }
+  function shortLabel(b) {
+    if (b.cat === 'work') return /^app/i.test(b.label) ? 'App dev' : /homework and/i.test(b.label) ? 'Homework' : 'HW / app';
+    return CAT[b.cat].short;
+  }
+  const isApp = b => b.cat === 'work' && /app/i.test(b.label);
+  const icon = id => `<svg class="i"><use href="#i-${id}"/></svg>`;
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  let selected = new Date().getDay();
+  let lastToday = new Date().getDay();
+
+  /* What's happening now */
+  function current(now) {
+    const dow = now.getDay(), m = now.getHours() * 60 + now.getMinutes();
+    const list = SCHED[dow];
+    if (m < list[0].s) {
+      const prev = SCHED[(dow + 6) % 7]; const sl = prev[prev.length - 1];
+      return { b: { label: 'Sleep', cat: 'sleep', s: sl.s - 1440, e: list[0].s }, next: list[0], m };
+    }
+    const i = list.findIndex(b => m >= b.s && m < b.e);
+    const b = list[i];
+    let next = list[i + 1];
+    if (!next) next = SCHED[(dow + 1) % 7][0];
+    return { b, next, m, dow, i };
+  }
+
+  function renderHeader(now) {
+    document.getElementById('title').innerHTML = `${DAY[now.getDay()]}, ${MONTH[now.getMonth()]} ${now.getDate()} <span class="yr">${now.getFullYear()}</span>`;
+    const ws = weekStart(now), we = new Date(ws); we.setDate(we.getDate() + 6);
+    document.getElementById('subtitle').textContent = `Week ${weekNo(now)} · school, SAT, gym, golf and app work around 8 hours of sleep`;
+    document.getElementById('clock').textContent = fmt(now.getHours() * 60 + now.getMinutes());
+    const sm = (d) => `${MONTH[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+    document.getElementById('weekRange').textContent = `${sm(ws)} – ${sm(we)}`;
+    const tonight = SCHED[now.getDay()].slice(-1)[0];
+    document.getElementById('sideSleep').textContent = `Lights out ${fmt(tonight.s)}`;
+  }
+
+  function renderNow(now) {
+    const c = current(now), b = c.b;
+    const span = b.e - b.s, gone = c.m - (b.s < 0 && c.m >= b.e ? b.s + 1440 : b.s);
+    const left = b.e - c.m;
+    const pct = Math.max(0, Math.min(1, gone / span));
+    const nextDay = c.next && SCHED[now.getDay()].indexOf(c.next) === -1;
+    document.getElementById('now').innerHTML = `
+      <div class="now-label"><span class="dot" style="--c:var(--c-${b.cat})"></span>Now · <span class="mono">${b.cat === 'sleep' ? 'until ' + fmt(b.e) : rangeLabel(b)}</span></div>
+      <div class="now-title">${esc(b.label)}</div>
+      <div>
+        <div class="bar" role="progressbar" aria-valuenow="${Math.round(pct * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="Block progress"><i style="width:${(pct * 100).toFixed(1)}%"></i></div>
+        <div class="now-foot" style="margin-top:8px"><span class="mono">${dur(Math.max(left, 0)) || 'under a minute'} left</span><span class="mono">${dur(Math.max(gone, 0)) || '0 min'} in</span></div>
+      </div>
+      <div class="now-next">${icon('arrow')}<span>Next${nextDay ? ' tomorrow' : ''} at <span class="mono">${fmt(c.next.s)}</span> · <b>${esc(c.next.label)}</b></span></div>`;
+  }
+
+  function weekCounts(now) {
+    const out = { gym: [0, 0, []], golf: [0, 0, []], sat: [0, 0, []], app: [0, 0, []] };
+    ORDER.forEach(dow => SCHED[dow].forEach(b => {
+      const k = blockKey(dow, b.i, now);
+      const add = (name, amt) => { out[name][1] += amt; if (isDone(k)) out[name][0] += amt; else out[name][2].push(SHORT[dow]); };
+      if (b.cat === 'gym') add('gym', 1);
+      if (b.cat === 'golf') add('golf', 1);
+      if (b.cat === 'sat') add('sat', (b.e - b.s) / 60);
+      if (isApp(b)) add('app', 1);
+    }));
+    return out;
+  }
+
+  function renderStats(now) {
+    const c = weekCounts(now);
+    const card = (lab, done, total, unit, left) => {
+      const ok = done >= total;
+      const rest = left.length ? `${left.length} left · ${left.join(', ')}` : '';
+      return `<div class="card stat"><div class="lab">${lab}</div>
+        <div class="fig">${done}<small> of ${total}${unit}</small></div>
+        <div class="chg ${ok ? 'ok' : ''}">${ok ? 'Target hit this week' : rest}</div></div>`;
+    };
+    document.getElementById('stats').innerHTML =
+      card('Gym sessions', c.gym[0], 4, '', c.gym[2]) +
+      card('Golf sessions', c.golf[0], 4, '', c.golf[2]) +
+      card('SAT prep', c.sat[0], 7, ' h', c.sat[2]) +
+      `<div class="card stat"><div class="lab">App development</div>
+        <div class="fig">${c.app[0]}<small> of ${c.app[1]} blocks</small></div>
+        <div class="chg">Weekend blocks plus any homework-or-app evening</div></div>`;
+  }
+
+  function renderTabs(now) {
+    const today = now.getDay();
+    document.getElementById('tabs').innerHTML = ORDER.map(d =>
+      `<button role="tab" id="tab-${d}" aria-selected="${d === selected}" data-dow="${d}" title="${DAY[d]}">${SHORT[d]}${d === today ? '<span class="today-mark" aria-hidden="true"></span>' : ''}</button>`).join('');
+  }
+
+  function renderDay(now) {
+    const dow = selected, list = SCHED[dow], isToday = dow === now.getDay();
+    const m = now.getHours() * 60 + now.getMinutes();
+    const todayIdx = ORDER.indexOf(now.getDay()), selIdx = ORDER.indexOf(dow);
+    const main = list.filter(b => b.cat === 'gym' || b.cat === 'golf').map(b => CAT[b.cat].name).join(' and ');
+    document.getElementById('dayTitle').textContent = `${isToday ? 'Today' : DAY[dow]} · ${main}`;
+
+    const span = AXIS_END - AXIS_START;
+    const segs = [];
+    if (list[0].s > AXIS_START) segs.push({ s: AXIS_START, e: list[0].s, cat: 'sleep', label: 'Sleep', i: -1 });
+    list.forEach(b => segs.push(b));
+    const html = segs.map(b => {
+      const s = Math.max(b.s, AXIS_START), e = Math.min(b.e, AXIS_END);
+      const left = (s - AXIS_START) / span * 100, w = (e - s) / span * 100;
+      const done = b.i >= 0 && TRACK.includes(b.cat) && isDone(blockKey(dow, b.i, now));
+      const past = selIdx < todayIdx || (isToday && e <= m);
+      const soft = ['routine', 'school', 'sleep'].includes(b.cat);
+      const lab = w > 5 ? shortLabel(b) : '';
+      return `<div class="seg ${soft ? 'soft' : ''} ${done ? 'done' : ''} ${past ? 'past' : ''}" style="left:${left}%;width:${w}%;--c:var(--c-${b.cat})" title="${esc(b.label)} · ${rangeLabel(b)}">${lab}</div>`;
+    }).join('');
+    const ticks = [6, 9, 12, 15, 18, 21, 24].map(h =>
+      `<span style="left:${(h * 60 - AXIS_START) / span * 100}%">${h === 12 ? '12p' : h === 24 ? '12a' : (h % 12) + (h < 12 ? 'a' : 'p')}</span>`).join('');
+    let pin = '';
+    if (isToday && m >= AXIS_START && m < AXIS_END) {
+      const p = (m - AXIS_START) / span * 100;
+      const flip = p > 85;
+      pin = `<div class="pin" style="left:${p}%" aria-hidden="true"><svg viewBox="0 0 14 12" style="${flip ? 'transform:scaleX(-1);left:-13px' : ''}"><path d="M0 0h14l-4 5 4 5H0z"/></svg><span class="t" style="${flip ? 'left:auto;right:16px' : ''}">${fmt(m)}</span></div>`;
+    }
+    document.getElementById('stripWrap').innerHTML =
+      `<div class="strip" role="img" aria-label="${DAY[dow]} timeline from 6 AM to midnight">${html}</div><div class="axis">${ticks}</div>${pin}`;
+
+    document.getElementById('legend').innerHTML = ['school', 'gym', 'golf', 'sat', 'work', 'free', 'routine', 'sleep']
+      .filter(c => list.some(b => b.cat === c) || c === 'sleep')
+      .map(c => `<span><span class="dot" style="--c:var(--c-${c})"></span>${CAT[c].name}</span>`).join('');
+
+    const cur = isToday ? list.findIndex(b => m >= b.s && m < b.e) : -1;
+    document.getElementById('blocks').innerHTML = list.map(b => {
+      const track = TRACK.includes(b.cat);
+      const k = blockKey(dow, b.i, now), done = track && isDone(k);
+      const id = `b-${dow}-${b.i}`;
+      return `<div class="row ${b.i === cur ? 'cur' : ''} ${done ? 'done' : ''}">
+        <span class="tm">${rangeLabel(b)}</span>
+        <span class="dot" style="--c:var(--c-${b.cat})"></span>
+        <label class="lb" for="${id}">${esc(b.label)}</label>
+        ${track ? `<input type="checkbox" id="${id}" data-k="${k}" ${done ? 'checked' : ''} aria-label="Mark ${esc(b.label)} done">` : '<span></span>'}
+      </div>`;
+    }).join('');
+
+    const notes = [];
+    if (DAY_NOTE[dow]) notes.push(DAY_NOTE[dow]);
+    if (list.some(b => b.cat === 'golf')) notes.push(GOLF_NOTE);
+    const sl = list[list.length - 1], wake = SCHED[(dow + 1) % 7][0].s;
+    notes.unshift(`Sleep ${fmt(sl.s)} to ${fmt(wake)} · ${dur(1440 - sl.s + wake)}.`);
+    document.getElementById('dayNote').textContent = notes.join(' ');
+  }
+
+  function renderTraining(now) {
+    const dow = selected, isToday = dow === now.getDay();
+    const w = WORKOUT[dow] || MOBILITY, g = GOLF[dow];
+    const exRows = w.ex.map((e, i) => {
+      const k = exKey(dow, i, now), d = isDone(k), id = `x-${dow}-${i}`;
+      return `<div class="ex ${d ? 'done' : ''}">
+        <input type="checkbox" id="${id}" data-k="${k}" ${d ? 'checked' : ''}>
+        <label class="nm" for="${id}">${esc(e[0])}${e[1] ? `<small>${esc(e[1])}</small>` : ''}</label>
+        <span class="sr">${e[2]}</span></div>`;
+    }).join('');
+    const golf = g ? `<div class="sub-h">${icon('flag')}Golf · ${g.name}</div>
+      <ol class="steps">${g.steps.map(s => `<li><span class="mono">${s[0]}</span><span>${esc(s[1])}</span></li>`).join('')}</ol>` : '';
+    const gymTime = SCHED[dow].find(b => b.cat === 'gym');
+    document.getElementById('training').innerHTML = `
+      <div class="card-head"><h2>${isToday ? 'Today’s workout' : DAY[dow] + '’s workout'}</h2>
+        <span class="meta">${gymTime ? 'Gym ' + rangeLabel(gymTime) : 'Rest day from the gym'}</span></div>
+      <div class="topic">${w.name}</div>
+      <div class="focus">${esc(w.focus)}</div>
+      ${exRows}
+      ${golf}
+      ${WORKOUT[dow] ? '<div class="note">Rest 60 to 90 seconds between sets. Add a little weight when you hit the top of the rep range on every set.</div>' : ''}`;
+  }
+
+  function renderSat(now) {
+    const dow = selected, s = SAT[dow], isToday = dow === now.getDay();
+    const blk = SCHED[dow].find(b => b.cat === 'sat');
+    const practice = dow === 0 ? ['Open Bluebook tests', 'https://satsuite.collegeboard.org/practice/practice-tests'] : ['Practice questions', QBANK];
+    document.getElementById('sat').innerHTML = `
+      <div class="card-head"><h2>${isToday ? 'Today’s SAT hour' : DAY[dow] + '’s SAT hour'}</h2><span class="meta">${rangeLabel(blk)}</span></div>
+      <div class="meta" style="margin-bottom:4px">${s.area}</div>
+      <div class="topic">${s.topic}</div>
+      <div class="topic-sub">${s.detail}</div>
+      <div class="actions">
+        <a class="btn primary" href="${yt(s.q)}" target="_blank" rel="noopener">${icon('play')}Watch on YouTube</a>
+        <a class="btn secondary" href="${practice[1]}" target="_blank" rel="noopener">${icon('pencil')}${practice[0]}</a>
+      </div>
+      <ol class="steps">${SAT_STEPS.map(x => `<li><span class="mono">${x[0]}</span><span>${x[1]}</span></li>`).join('')}</ol>
+      <div class="sub-h" style="margin-top:24px">${icon('book')}Study links</div>
+      <ul class="links">${RESOURCES.map(r => `<li><a href="${r[2]}" target="_blank" rel="noopener"><span>${r[0]}<small>${r[1]}</small></span>${icon('ext')}</a></li>`).join('')}</ul>`;
+  }
+
+  function renderWeek(now) {
+    const cols = [['gym', 'Gym'], ['golf', 'Golf'], ['sat', 'SAT'], ['work', 'Homework / app']];
+    const today = now.getDay();
+    const head = `<thead><tr><th>Day</th>${cols.map(c => `<th>${c[1]}</th>`).join('')}<th>Lights out</th></tr></thead>`;
+    const totals = { gym: [0, 0], golf: [0, 0], sat: [0, 0], work: [0, 0] };
+    const rows = ORDER.map(dow => {
+      const d = dateFor(dow, now), list = SCHED[dow];
+      const cells = cols.map(([cat]) => {
+        const bs = list.filter(b => b.cat === cat);
+        if (!bs.length) return '<td><span class="dash">–</span></td>';
+        return '<td>' + bs.map(b => {
+          const k = blockKey(dow, b.i, now), on = isDone(k);
+          const amt = cat === 'sat' ? (b.e - b.s) / 60 : 1;
+          totals[cat][1] += amt; if (on) totals[cat][0] += amt;
+          return `<button class="cell" data-k="${k}" aria-pressed="${on}" title="${esc(b.label)} · ${rangeLabel(b)}" aria-label="${DAY[dow]} ${esc(b.label)}">${icon('check')}</button>`;
+        }).join('') + '</td>';
+      }).join('');
+      const sl = list[list.length - 1];
+      return `<tr class="${dow === today ? 'is-today' : ''}"><td><b>${SHORT[dow]}</b><span>${d.getDate()}</span></td>${cells}<td class="mono" style="color:var(--text-2);font-size:12px">${fmt(sl.s)}</td></tr>`;
+    }).join('');
+    const tgt = { gym: 4, golf: 4, sat: 7, work: totals.work[1] };
+    const foot = `<tfoot><tr><td>Total</td>${cols.map(([c]) => `<td>${totals[c][0]} / ${tgt[c]}${c === 'sat' ? ' h' : ''}</td>`).join('')}<td></td></tr></tfoot>`;
+    document.getElementById('score').innerHTML = head + '<tbody>' + rows + '</tbody>' + foot;
+  }
+
+  function render() {
+    const now = new Date();
+    if (now.getDay() !== lastToday) { selected = now.getDay(); lastToday = selected; }
+    renderHeader(now); renderNow(now); renderStats(now); renderTabs(now);
+    renderDay(now); renderTraining(now); renderSat(now); renderWeek(now);
+  }
+
+  document.addEventListener('change', e => {
+    const k = e.target.dataset && e.target.dataset.k;
+    if (k) setDone(k, e.target.checked);
+  });
+  document.addEventListener('click', e => {
+    const tab = e.target.closest('[data-dow]');
+    if (tab) { selected = Number(tab.dataset.dow); render(); document.getElementById('tab-' + selected).focus(); return; }
+    const cell = e.target.closest('.cell');
+    if (cell) { setDone(cell.dataset.k, cell.getAttribute('aria-pressed') !== 'true'); return; }
+    const a = e.target.closest('#nav a');
+    if (a) document.querySelectorAll('#nav a').forEach(x => x.setAttribute('aria-current', String(x === a)));
+  });
+  document.getElementById('tabs').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const i = ORDER.indexOf(selected) + (e.key === 'ArrowRight' ? 1 : -1);
+    selected = ORDER[(i + 7) % 7]; render(); document.getElementById('tab-' + selected).focus();
+  });
+
+  render();
+  setInterval(render, 30000);
+})();
+</script>
