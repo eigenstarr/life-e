@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Weekly planner for school, SAT prep, gym, golf and app development around 8 hours of sleep">
+<meta name="theme-color" content="#0f0f10">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23141415'/%3E%3Cpath d='M11 7v18M11 8h11l-3 4.5 3 4.5H11' fill='none' stroke='%234cb07a' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Life Planner</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +18,7 @@
   --text: #171717; --text-2: #525252; --muted: #6f6f73;
   --line: rgba(23, 23, 23, 0.08); --line-2: rgba(23, 23, 23, 0.14);
   --accent: #1f7a4a; --on-accent: #ffffff;
-  --pos: #16a34a;
+  --pos: #16a34a; --neg: #dc2626;
   --c-school: #b4b4ba; --c-routine: #e1e1e5; --c-gym: #c2563a; --c-golf: #2f8a57;
   --c-sat: #3a5fc8; --c-cardio: #b0476e; --c-work: #c48a14; --c-free: #c9b48c; --c-sleep: #3f3f46;
   --seg-ink: #ffffff; --seg-ink-soft: #3f3f46;
@@ -30,7 +33,7 @@
     --bg: #141415; --side: #0f0f10; --card: #19191b; --raised: #232325;
     --text: #ededed; --text-2: #a1a1a6; --muted: #85858b;
     --line: rgba(237, 237, 237, 0.08); --line-2: rgba(237, 237, 237, 0.14);
-    --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a;
+    --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a; --neg: #e5484d;
     --c-school: #55555c; --c-routine: #313135; --c-gym: #df7353; --c-golf: #4cb07a;
     --c-sat: #7393f2; --c-cardio: #e07aa0; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
     --seg-ink: #0f0f10; --seg-ink-soft: #d4d4d8;
@@ -42,7 +45,7 @@
   --bg: #141415; --side: #0f0f10; --card: #19191b; --raised: #232325;
   --text: #ededed; --text-2: #a1a1a6; --muted: #85858b;
   --line: rgba(237, 237, 237, 0.08); --line-2: rgba(237, 237, 237, 0.14);
-  --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a;
+  --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a; --neg: #e5484d;
   --c-school: #55555c; --c-routine: #313135; --c-gym: #df7353; --c-golf: #4cb07a;
   --c-sat: #7393f2; --c-cardio: #e07aa0; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
   --seg-ink: #0f0f10; --seg-ink-soft: #d4d4d8;
@@ -51,6 +54,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { min-height: 100%; }
 body {
   background: var(--bg); color: var(--text);
@@ -341,6 +345,51 @@ body.resting .main { padding-bottom: 128px; }
   .stepper { grid-template-columns: 30px minmax(0, 1fr) 30px; }
 }
 
+/* Pages */
+.view { display: flex; flex-direction: column; gap: 24px; }
+
+/* SAT week list */
+.satw { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 56px; padding: 8px; margin: 0 -8px; border-radius: 10px; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; cursor: pointer; width: calc(100% + 16px); transition: background-color 150ms var(--ease); }
+.satw:hover, .satw[aria-pressed="true"] { background: var(--raised); }
+.satw .d { color: var(--muted); font-weight: 500; }
+.satw.today .d { color: var(--accent); }
+.satw small { display: block; color: var(--muted); font-size: 12px; line-height: 16px; }
+.satw .st { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.satw .st.ok { color: var(--pos); }
+
+/* Gym teaser on Today */
+.teaser { display: flex; align-items: center; gap: 16px; }
+.teaser .t { flex: 1; min-width: 0; }
+
+/* Settings */
+.prefs { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
+.prefs .card { padding: 8px 24px; }
+.prefs h2 { padding: 16px 0 8px; }
+.pref { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+.pref.stack { grid-template-columns: minmax(0, 1fr); }
+.pref .lab b { display: block; font-weight: 500; }
+.pref .lab small { display: block; color: var(--muted); font-size: 13px; line-height: 18px; margin-top: 2px; }
+.seg-ctl { display: inline-flex; gap: 2px; padding: 2px; background: var(--raised); border-radius: 10px; }
+.seg-ctl button { font: inherit; font-weight: 500; color: var(--text-2); background: transparent; border: 0; height: 32px; padding: 0 14px; border-radius: 8px; cursor: pointer; transition: background-color 150ms var(--ease), color 150ms var(--ease); }
+.seg-ctl button:hover { color: var(--text); }
+.seg-ctl button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: inset 0 0 0 1px var(--line), var(--shadow); }
+.switch { position: relative; width: 44px; height: 26px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+.switch span { position: absolute; inset: 0; border-radius: 13px; background: var(--line-2); transition: background-color 150ms var(--ease); }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); transition: transform 180ms var(--ease); }
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(18px); }
+.switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { display: inline-flex; align-items: center; gap: 8px; }
+.num input { width: 72px; height: 36px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--raised); color: var(--text); text-align: center; font: 500 14px var(--mono); }
+.num span { color: var(--muted); font-size: 13px; }
+.pref textarea { width: 100%; min-height: 96px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--raised); color: var(--text); font: 12px/18px var(--mono); padding: 10px 12px; resize: vertical; margin-top: 12px; }
+.pref .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn.danger { background: transparent; color: var(--neg); border-color: var(--line-2); }
+.btn.danger.armed { background: var(--neg); color: #fff; border-color: var(--neg); }
+.msg { font-size: 13px; color: var(--pos); min-height: 18px; margin-top: 8px; }
+.msg.err { color: var(--neg); }
+
 /* Week scorecard */
 .scroll { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
 table.score { width: 100%; border-collapse: collapse; min-width: 560px; font-variant-numeric: tabular-nums; }
@@ -396,10 +445,9 @@ section { scroll-margin-top: 24px; }
   .axis span:nth-child(even) { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .wrap > * { animation: rise 420ms var(--ease) both; }
-  .wrap > *:nth-child(2) { animation-delay: 50ms; }
-  .wrap > *:nth-child(3) { animation-delay: 100ms; }
-  .wrap > *:nth-child(4) { animation-delay: 150ms; }
+  .view > * { animation: rise 360ms var(--ease) both; }
+  .view > *:nth-child(2) { animation-delay: 50ms; }
+  .view > *:nth-child(3) { animation-delay: 100ms; }
   @keyframes rise { from { opacity: 0.001; transform: translateY(8px); } }
 }
 </style>
@@ -418,6 +466,8 @@ section { scroll-margin-top: 24px; }
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 3l14 9-14 9z"/></symbol>
   <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4M9 18c-4.51 2-5-2-7-2"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 19V5"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
@@ -433,10 +483,11 @@ section { scroll-margin-top: 24px; }
     <div>
       <div class="nav-label">Navigation</div>
       <nav class="nav" id="nav">
-        <a href="#today" aria-current="true"><svg class="i"><use href="#i-sun"/></svg>Today</a>
+        <a href="#today"><svg class="i"><use href="#i-sun"/></svg>Today</a>
         <a href="#gym"><svg class="i"><use href="#i-dumbbell"/></svg>Gym</a>
         <a href="#sat"><svg class="i"><use href="#i-book"/></svg>SAT</a>
         <a href="#week"><svg class="i"><use href="#i-grid"/></svg>Week</a>
+        <a href="#preferences"><svg class="i"><use href="#i-gear"/></svg>Settings</a>
       </nav>
     </div>
     <div class="side-foot">
@@ -458,37 +509,54 @@ section { scroll-margin-top: 24px; }
         </div>
       </header>
 
-      <div class="summary">
-        <div class="card now" id="now"></div>
-        <div class="stats" id="stats"></div>
+      <div class="view" data-view="today">
+        <div class="summary">
+          <div class="card now" id="now"></div>
+          <div class="stats" id="stats"></div>
+        </div>
+
+        <section class="card" id="today">
+          <div class="card-head">
+            <h2 id="dayTitle">Schedule</h2>
+            <div class="tabs" role="tablist" id="tabs"></div>
+          </div>
+          <div class="strip-wrap" id="stripWrap"></div>
+          <div class="legend" id="legend"></div>
+          <div class="blocks" id="blocks"></div>
+          <div class="note" id="dayNote"></div>
+        </section>
+
+        <div class="pair">
+          <section class="card" id="gymTeaser"></section>
+          <section class="card" id="golf"></section>
+        </div>
       </div>
 
-      <section class="card" id="today">
-        <div class="card-head">
-          <h2 id="dayTitle">Schedule</h2>
-          <div class="tabs" role="tablist" id="tabs"></div>
-        </div>
-        <div class="strip-wrap" id="stripWrap"></div>
-        <div class="legend" id="legend"></div>
-        <div class="blocks" id="blocks"></div>
-        <div class="note" id="dayNote"></div>
-      </section>
-
-      <section class="card" id="gym"></section>
-
-      <div class="pair">
-        <section class="card" id="sat"></section>
-        <section class="card" id="golf"></section>
+      <div class="view" data-view="gym" hidden>
+        <section class="card" id="gym"></section>
       </div>
 
-      <section class="card" id="week">
-        <div class="card-head">
-          <h2>Week scorecard</h2>
-          <span class="meta" id="weekRange"></span>
+      <div class="view" data-view="sat" hidden>
+        <div class="pair">
+          <section class="card" id="sat"></section>
+          <section class="card" id="satWeek"></section>
         </div>
-        <div class="scroll"><table class="score" id="score"></table></div>
-        <div class="note">Tap a circle to mark a session done. Checking a block in the schedule does the same thing.</div>
-      </section>
+      </div>
+
+      <div class="view" data-view="week" hidden>
+        <section class="card" id="week">
+          <div class="card-head">
+            <h2>Week scorecard</h2>
+            <span class="meta" id="weekRange"></span>
+          </div>
+          <div class="scroll"><table class="score" id="score"></table></div>
+          <div class="note">Tap a circle to mark a session done. Checking a block in the schedule does the same thing.</div>
+        </section>
+      </div>
+
+      <div class="view" data-view="preferences" hidden>
+        <div class="prefs" id="prefs"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -654,28 +722,27 @@ section { scroll-margin-top: 24px; }
     ['Desmos calculator', 'Practice with the calculator built into the test', 'https://www.desmos.com/calculator'],
   ];
 
-  /* Theme: dark by default, switchable, remembered in this browser */
+  /* Theme: dark by default; dark, light or follow the device, remembered in this browser */
   const THEME_KEY = 'life-planner-theme';
   let theme = 'dark';
   try { theme = localStorage.getItem(THEME_KEY) || 'dark'; } catch (e) {}
   function applyTheme() {
-    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', theme);
     const btn = document.getElementById('themeBtn');
-    const next = theme === 'dark' ? 'light' : 'dark';
-    btn.innerHTML = `<svg class="i"><use href="#i-${theme === 'dark' ? 'moon' : 'sun'}"/></svg>${theme === 'dark' ? 'Dark' : 'Light'}`;
-    btn.setAttribute('aria-label', `Theme: ${theme}. Switch to ${next}`);
+    const label = { dark: 'Dark', light: 'Light', system: 'System' }[theme];
+    btn.innerHTML = `<svg class="i"><use href="#i-${theme === 'light' ? 'sun' : 'moon'}"/></svg>${label}`;
+    btn.setAttribute('aria-label', `Theme: ${label}. Switch to ${theme === 'dark' ? 'light' : 'dark'}`);
   }
+  function setTheme(t) { theme = t; try { localStorage.setItem(THEME_KEY, t); } catch (e) {} applyTheme(); if (typeof renderPrefs === 'function' && currentView() === 'preferences') renderPrefs(); }
   applyTheme();
-  document.getElementById('themeBtn').addEventListener('click', () => {
-    theme = theme === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
-    applyTheme();
-  });
+  document.getElementById('themeBtn').addEventListener('click', () => setTheme(theme === 'dark' ? 'light' : 'dark'));
 
   /* Storage: per-browser convenience, safe if blocked */
   const KEY = 'life-planner-v1';
   let store = { done: {} };
   try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign({ done: {} }, JSON.parse(raw)); } catch (e) {}
+  store.prefs = Object.assign({ unit: 'lb', restTimer: true, vibrate: true }, store.prefs);
   function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
   const isDone = k => !!store.done[k];
   function setDone(k, v) { if (v) store.done[k] = 1; else delete store.done[k]; save(); render(); }
@@ -723,9 +790,10 @@ section { scroll-margin-top: 24px; }
   }
 
   function renderHeader(now) {
-    document.getElementById('title').innerHTML = `${DAY[now.getDay()]}, ${MONTH[now.getMonth()]} ${now.getDate()} <span class="yr">${now.getFullYear()}</span>`;
+    const v = typeof currentView === 'function' ? currentView() : 'today';
+    document.getElementById('title').innerHTML = v === 'today' ? `${DAY[now.getDay()]}, ${MONTH[now.getMonth()]} ${now.getDate()} <span class="yr">${now.getFullYear()}</span>` : VIEWS[v];
     const ws = weekStart(now), we = new Date(ws); we.setDate(we.getDate() + 6);
-    document.getElementById('subtitle').textContent = `Week ${weekNo(now)} · school, SAT, gym, golf and app work around 8 hours of sleep`;
+    document.getElementById('subtitle').textContent = v === 'today' ? `Week ${weekNo(now)} · school, SAT, gym, golf and app work around 8 hours of sleep` : `${DAY[now.getDay()]}, ${MONTH[now.getMonth()]} ${now.getDate()} · week ${weekNo(now)}`;
     document.getElementById('clock').textContent = fmt(now.getHours() * 60 + now.getMinutes());
     const sm = (d) => `${MONTH[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
     document.getElementById('weekRange').textContent = `${sm(ws)} – ${sm(we)}`;
@@ -907,7 +975,7 @@ section { scroll-margin-top: 24px; }
     const now = new Date();
     if (now.getDay() !== lastToday) { selected = now.getDay(); lastToday = selected; }
     renderHeader(now); renderNow(now); renderStats(now); renderTabs(now);
-    renderDay(now); renderSat(now); renderGolf(now); renderWeek(now);
+    renderDay(now); renderSat(now); renderSatWeek(now); renderGolf(now); renderGymTeaser(); renderWeek(now);
   }
 
   document.addEventListener('change', e => {
@@ -919,8 +987,6 @@ section { scroll-margin-top: 24px; }
     if (tab) { selected = Number(tab.dataset.dow); render(); document.getElementById('tab-' + selected).focus(); return; }
     const cell = e.target.closest('.cell');
     if (cell) { setDone(cell.dataset.k, cell.getAttribute('aria-pressed') !== 'true'); return; }
-    const a = e.target.closest('#nav a');
-    if (a) document.querySelectorAll('#nav a').forEach(x => x.setAttribute('aria-current', String(x === a)));
   });
   document.getElementById('tabs').addEventListener('keydown', e => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -961,12 +1027,12 @@ section { scroll-margin-top: 24px; }
     cool_walk:  { n: 'Cool-down walk and stretch', m: ['hamstrings', 'calves'], eq: 'Bodyweight', k: 'time', sets: 1, r: [5, 5], rest: 0, tip: 'Hips, hamstrings, calves' },
   };
   const KIND = {
-    weight: { a: 'Weight (lb)', b: 'Reps', bStep: 1 },
-    bw:     { a: 'Added (lb)', b: 'Reps', bStep: 1 },
+    weight: { a: 'Weight', b: 'Reps', bStep: 1 },
+    bw:     { a: 'Added', b: 'Reps', bStep: 1 },
     reps:   { a: null, b: 'Reps', bStep: 1 },
     time:   { a: null, b: 'Minutes', bStep: 1 },
     cardio: { a: 'Speed (mph)', b: 'Minutes', bStep: 1, aStep: 0.1 },
-    carry:  { a: 'Per hand (lb)', b: 'Meters', bStep: 5 },
+    carry:  { a: 'Per hand', b: 'Meters', bStep: 5 },
   };
   const ROUTINE = {
     1: { name: 'Push A', type: 'push', ex: ['bench', 'db_ohp', 'incline_db', 'dips', 'lateral', 'pallof'] },
@@ -1038,7 +1104,10 @@ section { scroll-margin-top: 24px; }
     return b;
   }
   const fmtNum = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
-  const unitA = e => e.k === 'cardio' ? ' mph' : ' lb';
+  const U = () => (store.prefs && store.prefs.unit) || 'lb';
+  const unitA = e => e.k === 'cardio' ? ' mph' : ' ' + U();
+  const stepOf = e => U() === 'kg' ? e.step / 2 : e.step;
+  const aLabel = K => K.aStep ? K.a : `${K.a} (${U()})`;
   function advice(id) {
     const e = EX[id], last = lastLog(id);
     if (!last && e.k === 'bw') return { up: false, text: `First time. Bodyweight only, add weight once you get ${e.r[1]} reps on every set` };
@@ -1047,7 +1116,7 @@ section { scroll-margin-top: 24px; }
     const allTop = last.s.length >= e.sets && last.s.every(([, r]) => r >= e.r[1]);
     const anyLow = last.s.some(([, r]) => r < e.r[0]);
     if (e.k === 'reps') return allTop ? { up: true, text: `Every rep last time. Go slower or add ${e.r[1] > 12 ? 'a pause' : '2 reps'}` } : { up: false, text: `Aim for ${e.r[1]} reps on every set` };
-    if (allTop) return { up: true, text: `Every rep last time. ${e.step} lb more` };
+    if (allTop) return { up: true, text: `Every rep last time. ${stepOf(e)} ${U()} more` };
     if (anyLow) return { up: false, text: `Same weight. Aim for at least ${e.r[0]} reps every set` };
     return { up: false, text: `Same weight. Add a rep where you can, ${e.r[1]} on every set moves you up` };
   }
@@ -1057,7 +1126,7 @@ section { scroll-margin-top: 24px; }
     for (let i = 0; i < e.sets; i++) {
       const prev = last && (last.s[i] || last.s[last.s.length - 1]);
       let a = prev ? prev[0] : '';
-      if (adv.up && a !== '' && KIND[e.k].a) a = a + e.step;
+      if (adv.up && a !== '' && KIND[e.k].a) a = a + stepOf(e);
       if (e.k === 'bw' && a === '') a = 0;
       const b = prev && !adv.up ? prev[1] : (e.k === 'time' || e.k === 'cardio' ? e.r[0] : e.r[0]);
       out.push({ a: KIND[e.k].a ? a : '', b, done: false });
@@ -1078,7 +1147,6 @@ section { scroll-margin-top: 24px; }
     const sets = {}; ROUTINE[dow].ex.forEach(id => sets[id] = initSets(id));
     store.sess = { d: todayKey(), dow, t0: Date.now(), cur: 0, sets, end: null };
     save(); keepAwake(true); renderGym();
-    document.getElementById('gym').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
   function finishSession(silent) {
     const s = store.sess; if (!s || s.end) return;
@@ -1109,7 +1177,7 @@ section { scroll-margin-top: 24px; }
   if (store.sess && store.sess.end && store.sess.d !== todayKey()) store.sess = null;
 
   function startRest(sec) {
-    if (!sec) return;
+    if (!sec || !store.prefs.restTimer) return;
     rest = { end: Date.now() + sec * 1000, total: sec, paused: false, left: sec };
     tickRest();
   }
@@ -1138,12 +1206,12 @@ section { scroll-margin-top: 24px; }
     else right = previewView(gymSel, now);
 
     document.getElementById('gym').innerHTML = `
-      <div class="card-head"><h2>Gym</h2><span class="meta">Push · pull · push · cardio · pull</span></div>
+      <div class="card-head"><h2>Training plan</h2><span class="meta">Push · pull · push · cardio · pull</span></div>
       <div class="gym">
         <div class="gym-plan"><div class="plan-label">This week</div>${plan}</div>
         <div class="card" style="box-shadow:none">${right}</div>
       </div>`;
-    tickRest(); tickClock();
+    tickRest(); tickClock(); renderGymTeaser();
   }
 
   function previewView(dow, now) {
@@ -1169,7 +1237,7 @@ section { scroll-margin-top: 24px; }
         ${bodyMap(routineMuscles(r), 64)}
         <button class="btn primary" data-act="start" data-rt="${dow}">${icon('play')}${doneT ? 'Start again' : 'Start'}</button>
       </div>
-      ${doneT ? `<div class="done-banner">${icon('check')}<span>Done today · ${doneT.mins} min · ${doneT.sets} sets${doneT.vol ? ' · ' + fmtNum(doneT.vol) + ' lb' : ''}</span></div>` : ''}
+      ${doneT ? `<div class="done-banner">${icon('check')}<span>Done today · ${doneT.mins} min · ${doneT.sets} sets${doneT.vol ? ' · ' + fmtNum(doneT.vol) + ' ' + U() : ''}</span></div>` : ''}
       <div class="preview">${rows}</div>
       <div class="note">${r.type === 'cardio' ? 'Keep it easy so you can wind down for bed after.' : 'Weights fill in from last time. When you hit the top of the rep range on every set, the next session adds weight.'}</div>`;
   }
@@ -1189,7 +1257,7 @@ section { scroll-margin-top: 24px; }
         <button data-act="inc" data-s="${si}" data-f="${f}" aria-label="More ${label}">${icon('plus')}</button></div>`;
     const rows = sets.map((x, si) => `<div class="set-row ${one ? 'one' : ''} ${x.done ? 'done' : ''}">
         <span class="set-n">${si + 1}</span>
-        ${K.a ? stepper(si, 'a', x.a, K.a) : ''}${stepper(si, 'b', x.b, K.b)}
+        ${K.a ? stepper(si, 'a', x.a, aLabel(K)) : ''}${stepper(si, 'b', x.b, K.b)}
         <button class="chk" data-act="chk" data-s="${si}" aria-pressed="${x.done}" aria-label="Set ${si + 1} done">${icon('check')}</button></div>`).join('');
     const lastTxt = last ? last.s.map(([a, rr]) => K.a ? `${fmtNum(a)}×${rr}` : `${rr}`).join(', ') : '';
     const pr = K.a && b && sets.some(x => x.done && Number(x.a) > b) ? '<span class="chip pr">New best</span>' : '';
@@ -1198,7 +1266,7 @@ section { scroll-margin-top: 24px; }
           <div class="clockline"><span id="sessClock">0:00</span> · ${st.done}/${st.total} sets</div></div>
         <button class="btn primary" data-act="finish">${icon('check')}Finish</button>
       </div>
-      <div class="vol"><div class="bar"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div><span class="mono">${fmtNum(st.vol)} lb</span></div>
+      <div class="vol"><div class="bar"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div><span class="mono">${fmtNum(st.vol)} ${U()}</span></div>
       <div class="dots">${dots}</div>
       <div class="ex-head"><div style="min-width:0">
         <div class="ex-title">${esc(e.n)}</div>
@@ -1211,7 +1279,7 @@ section { scroll-margin-top: 24px; }
       </div>
       <div class="prog" style="${adv.up ? '' : 'color:var(--text-2)'}">${icon(adv.up ? 'up' : 'arrow')}<span>${adv.up ? '<b>Progress</b> · ' : ''}${adv.text}</span></div>
       <div class="sets">
-        <div class="set-hd ${one ? 'one' : ''}"><span>Set</span>${K.a ? `<span>${K.a}</span>` : ''}<span>${K.b}</span><span></span></div>
+        <div class="set-hd ${one ? 'one' : ''}"><span>Set</span>${K.a ? `<span>${aLabel(K)}</span>` : ''}<span>${K.b}</span><span></span></div>
         ${rows}
         <div class="set-tools">
           <button class="btn ghost sm" data-act="addset">${icon('plus')}Add set</button>
@@ -1234,7 +1302,7 @@ section { scroll-margin-top: 24px; }
     return `<div class="sess-top"><span class="tile on">${icon('check')}</span>
         <div class="t"><div class="meta">Finished</div><h3>${r.name}</h3></div>
         <button class="btn secondary" data-act="close">Back to plan</button></div>
-      <div class="done-banner">${icon('check')}<span>${Math.round((s.end - s.t0) / 60000)} min · ${st.done} sets${st.vol ? ' · ' + fmtNum(st.vol) + ' lb lifted' : ''}. Marked done in your schedule</span></div>
+      <div class="done-banner">${icon('check')}<span>${Math.round((s.end - s.t0) / 60000)} min · ${st.done} sets${st.vol ? ' · ' + fmtNum(st.vol) + ' ' + U() + ' lifted' : ''}. Marked done in your schedule</span></div>
       <div class="preview">${rows}</div>`;
   }
 
@@ -1255,7 +1323,7 @@ section { scroll-margin-top: 24px; }
     dock.querySelector('.bar i').style.width = Math.max(0, Math.min(100, (1 - left / rest.total) * 100)) + '%';
     dock.querySelector('[data-rest="pause"]').innerHTML = icon(rest.paused ? 'play' : 'pause');
     dock.querySelector('[data-rest="pause"]').setAttribute('aria-label', rest.paused ? 'Resume rest' : 'Pause rest');
-    if (over && !rest.buzzed) { rest.buzzed = true; try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {} setTimeout(() => { if (rest && rest.buzzed) { rest = null; tickRest(); } }, 4000); }
+    if (over && !rest.buzzed) { rest.buzzed = true; try { store.prefs.vibrate && navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {} setTimeout(() => { if (rest && rest.buzzed) { rest = null; tickRest(); } }, 4000); }
   }
   setInterval(() => { tickClock(); tickRest(); }, 250);
 
@@ -1293,7 +1361,7 @@ section { scroll-margin-top: 24px; }
     else if (act === 'delset') sets.pop();
     else if (act === 'inc' || act === 'dec') {
       const x = sets[Number(b.dataset.s)], f = b.dataset.f, K = KIND[e2.k];
-      const step = f === 'a' ? (K.aStep || e2.step) : K.bStep, dir = act === 'inc' ? 1 : -1;
+      const step = f === 'a' ? (K.aStep || stepOf(e2)) : K.bStep, dir = act === 'inc' ? 1 : -1;
       const si = Number(b.dataset.s), prevV = si > 0 ? Number(sets[si - 1][f]) || 0 : 0;
       const base = x[f] === '' ? prevV : Number(x[f]) || 0;
       const v = Math.max(0, x[f] === '' && prevV ? base : base + dir * step);
@@ -1323,10 +1391,155 @@ section { scroll-margin-top: 24px; }
     if (filled) { save(); renderGym(); }
   });
 
+  /* ---------- Today: gym teaser ---------- */
+  function renderGymTeaser() {
+    const now = new Date(), today = now.getDay(), r = ROUTINE[today], s = store.sess;
+    const el = document.getElementById('gymTeaser');
+    const head = `<div class="card-head"><h2>Today’s workout</h2><a class="btn ghost sm" href="#gym">Open gym ${icon('chev')}</a></div>`;
+    if (s && !s.end) {
+      const st = sessStats(s);
+      el.innerHTML = head + `<div class="teaser"><span class="tile on">${icon('dumbbell')}</span><div class="t"><div class="topic">${ROUTINE[s.dow].name}</div><div class="sub" style="margin:0">In progress · ${st.done} of ${st.total} sets</div></div><a class="btn primary" href="#gym">Resume</a></div>`;
+      return;
+    }
+    if (!r) {
+      const next = ORDER.slice(ORDER.indexOf(today) + 1).concat(ORDER).find(d => ROUTINE[d]);
+      el.innerHTML = head + `<div class="teaser"><span class="tile">${icon('moon')}</span><div class="t"><div class="topic">Rest day</div><div class="sub" style="margin:0">Ten minutes of mobility. Next is ${DAY[next]}, ${ROUTINE[next].name}</div></div></div>`;
+      return;
+    }
+    const done = store.hist.filter(h => h.d === todayKey() && h.dow === today).pop();
+    const blk = SCHED[today].find(b => b.cat === 'gym' || b.cat === 'cardio');
+    el.innerHTML = head + `<div class="teaser"><span class="tile on">${icon(r.type === 'cardio' ? 'activity' : 'dumbbell')}</span>
+      <div class="t"><div class="topic">${r.name}</div><div class="sub" style="margin:0">${done ? `Done · ${done.mins} min · ${done.sets} sets` : `${r.ex.length} exercises · <span class="mono">${rangeLabel(blk)}</span>`}</div></div>
+      ${bodyMap(routineMuscles(r), 64)}</div>
+      ${done ? '' : `<div class="actions" style="margin:20px 0 0"><button class="btn primary" data-start-today="${today}">${icon('play')}Start workout</button></div>`}`;
+  }
+
+  /* ---------- SAT: week plan ---------- */
+  function renderSatWeek(now) {
+    const today = now.getDay();
+    const rows = ORDER.map(d => {
+      const t = SAT[d], blk = SCHED[d].find(b => b.cat === 'sat'), done = isDone(blockKey(d, blk.i, now));
+      return `<button class="satw ${d === today ? 'today' : ''}" data-satday="${d}" aria-pressed="${d === selected}">
+        <span class="d">${SHORT[d]}</span><span>${t.topic}<small>${t.area}</small></span>
+        <span class="st ${done ? 'ok' : ''}">${done ? 'Done' : fmt(blk.s)}</span></button>`;
+    }).join('');
+    const hours = ORDER.reduce((n, d) => { const b = SCHED[d].find(x => x.cat === 'sat'); return n + (isDone(blockKey(d, b.i, now)) ? 1 : 0); }, 0);
+    document.getElementById('satWeek').innerHTML = `<div class="card-head"><h2>This week’s SAT plan</h2><span class="meta">${hours} of 7 h done</span></div>${rows}
+      <div class="note">Pick a day to see its lesson and practice links. Check off the SAT block in the schedule when you finish.</div>`;
+  }
+
+  /* ---------- Settings ---------- */
+  const PREF_DEFAULTS = { unit: 'lb', restTimer: true, vibrate: true };
+  store.prefs = Object.assign({}, PREF_DEFAULTS, store.prefs);
+  const toKg = x => Math.round(x * 0.45359237 * 2) / 2, toLb = x => Math.round(x / 0.45359237);
+  function convertUnits(to) {
+    const f = to === 'kg' ? toKg : toLb;
+    const loaded = id => EX[id] && ['weight', 'bw', 'carry'].includes(EX[id].k);
+    Object.keys(store.logs).forEach(id => { if (loaded(id)) store.logs[id].forEach(x => x.s.forEach(set => { set[0] = f(set[0]); })); });
+    store.hist.forEach(h => { if (h.vol) h.vol = to === 'kg' ? Math.round(h.vol * 0.45359237) : Math.round(h.vol / 0.45359237); });
+    if (store.sess) Object.keys(store.sess.sets).forEach(id => { if (loaded(id)) store.sess.sets[id].forEach(x => { if (x.a !== '') x.a = f(Number(x.a)); }); });
+    store.prefs.unit = to;
+  }
+  const seg = (key, opts, cur) => `<div class="seg-ctl" role="group">${opts.map(([v, l]) => `<button type="button" data-pref="${key}" data-v="${v}" aria-pressed="${v === cur}">${l}</button>`).join('')}</div>`;
+  const sw = (key, on, label) => `<label class="switch"><input type="checkbox" role="switch" id="pref-${key}" data-pref="${key}" ${on ? 'checked' : ''} aria-label="${label}"><span></span></label>`;
+  function renderPrefs() {
+    const P = store.prefs;
+    document.getElementById('prefs').innerHTML = `
+      <section class="card"><h2>Appearance</h2>
+        <div class="pref"><div class="lab"><b>Theme</b><small>Dark is the default. System follows your phone or computer</small></div>
+          ${seg('theme', [['dark', 'Dark'], ['light', 'Light'], ['system', 'System']], theme)}</div>
+      </section>
+      <section class="card"><h2>Gym</h2>
+        <div class="pref"><div class="lab"><b>Weight units</b><small>Switching converts the weights you have already logged</small></div>
+          ${seg('unit', [['lb', 'lb'], ['kg', 'kg']], P.unit)}</div>
+        <div class="pref"><div class="lab"><b>Rest timer</b><small>Starts after you check off a set</small></div>${sw('restTimer', P.restTimer, 'Rest timer')}</div>
+        <div class="pref"><div class="lab"><b>Vibrate when rest ends</b><small>On phones that support it</small></div>${sw('vibrate', P.vibrate, 'Vibrate when rest ends')}</div>
+      </section>
+      <section class="card"><h2>Your data</h2>
+        <div class="pref stack"><div class="lab"><b>Back up</b><small>Everything is saved in this browser only. Copy a backup to move it to another device or keep it safe</small></div>
+          <div class="row-btns"><button class="btn secondary sm" data-data="copy">Copy backup</button></div>
+          <textarea id="backupText" placeholder="Paste a backup here to restore it" aria-label="Backup text"></textarea>
+          <div class="row-btns"><button class="btn secondary sm" data-data="restore">Restore from the box</button></div>
+          <div class="msg" id="dataMsg" role="status"></div></div>
+        <div class="pref"><div class="lab"><b>Clear this week</b><small>Removes this week’s check marks from the schedule and scorecard</small></div>
+          <button class="btn danger sm" data-data="clearweek">Clear week</button></div>
+        <div class="pref"><div class="lab"><b>Erase everything</b><small>Check marks, workout history and settings. This cannot be undone</small></div>
+          <button class="btn danger sm" data-data="erase">Erase</button></div>
+      </section>
+      <section class="card"><h2>About</h2>
+        <div class="pref"><div class="lab"><b>Life week planner</b><small>School, SAT, gym, golf and app work around 8 hours of sleep. Design pass with unslop by @heydamir. Workout flow modeled on openGym</small></div>
+          <a class="btn secondary sm" href="https://github.com/eigenstarr/life-e" target="_blank" rel="noopener">${icon('github')}GitHub</a></div>
+      </section>`;
+  }
+  function dataMsg(t, err) { const m = document.getElementById('dataMsg'); if (m) { m.textContent = t; m.classList.toggle('err', !!err); } }
+  function arm(btn, label, fn) {
+    if (btn.classList.contains('armed')) { fn(); return; }
+    const old = btn.textContent; btn.classList.add('armed'); btn.textContent = label;
+    setTimeout(() => { btn.classList.remove('armed'); btn.textContent = old; }, 4000);
+  }
+  const prefsEl = document.getElementById('prefs');
+  prefsEl.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.pref === 'theme') { setTheme(b.dataset.v); return; }
+    if (b.dataset.pref === 'unit') { if (b.dataset.v !== store.prefs.unit) { convertUnits(b.dataset.v); save(); renderGym(); renderPrefs(); } return; }
+    const d = b.dataset.data;
+    if (d === 'copy') {
+      const text = JSON.stringify({ app: 'life-planner', v: 1, theme, store });
+      const box = document.getElementById('backupText');
+      const fallback = () => { box.value = text; box.focus(); box.select(); dataMsg('Copy the text in the box and keep it somewhere safe'); };
+      try { navigator.clipboard.writeText(text).then(() => dataMsg('Backup copied. Paste it into a note or message to keep it'), fallback); } catch (err) { fallback(); }
+    } else if (d === 'restore') {
+      try {
+        const o = JSON.parse(document.getElementById('backupText').value);
+        if (!o || o.app !== 'life-planner' || !o.store || typeof o.store.done !== 'object') throw new Error();
+        store = o.store; store.logs = store.logs || {}; store.hist = store.hist || []; store.prefs = Object.assign({}, PREF_DEFAULTS, store.prefs);
+        save(); if (o.theme) setTheme(o.theme);
+        render(); renderGym(); renderPrefs(); dataMsg('Backup restored');
+      } catch (err) { dataMsg('That text is not a backup from this planner. Copy the whole backup and paste it again', true); }
+    } else if (d === 'clearweek') {
+      arm(b, 'Tap again to clear', () => {
+        const now = new Date(), keys = ORDER.map(x => keyOf(dateFor(x, now)) + ':');
+        Object.keys(store.done).forEach(k => { if (keys.some(p => k.startsWith(p))) delete store.done[k]; });
+        save(); render(); renderPrefs(); dataMsg('This week’s check marks are cleared');
+      });
+    } else if (d === 'erase') {
+      arm(b, 'Tap again to erase', () => {
+        store = { done: {}, logs: {}, hist: [], prefs: Object.assign({}, PREF_DEFAULTS) };
+        rest = null; save(); setTheme('dark'); render(); renderGym(); renderPrefs(); dataMsg('Everything is erased');
+      });
+    }
+  });
+  prefsEl.addEventListener('change', e => {
+    const t = e.target; if (t.type !== 'checkbox' || !t.dataset.pref) return;
+    store.prefs[t.dataset.pref] = t.checked; save();
+    if (t.dataset.pref === 'restTimer' && !t.checked) { rest = null; tickRest(); }
+  });
+
+  /* ---------- Pages ---------- */
+  const VIEWS = { today: 'Today', gym: 'Gym', sat: 'SAT prep', week: 'Week', preferences: 'Settings' };
+  function currentView() { const h = location.hash.slice(1); return VIEWS[h] ? h : 'today'; }
+  function route() {
+    const v = currentView();
+    document.querySelectorAll('.view').forEach(el => { el.hidden = el.dataset.view !== v; });
+    document.querySelectorAll('#nav a').forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + v)));
+    if (v === 'preferences') renderPrefs();
+    renderHeader(new Date());
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  document.addEventListener('click', e => {
+    const sd = e.target.closest('[data-satday]');
+    if (sd) { selected = Number(sd.dataset.satday); render(); return; }
+    const st = e.target.closest('[data-start-today]');
+    if (st) { startSession(Number(st.dataset.startToday)); location.hash = 'gym'; }
+  });
+
   render();
   renderGym();
+  route();
   setInterval(render, 30000);
 })();
 </script>
+
 </body>
 </html>

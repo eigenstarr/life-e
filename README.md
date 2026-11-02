@@ -2,7 +2,15 @@
 
 A weekly planner dashboard that balances school, homework, SAT prep, gym, golf, app development and free time around 8 hours of sleep.
 
-Open `index.html` in any browser. No build step, no dependencies. It opens in dark mode; the button in the top right switches to light and remembers your choice.
+Live at the Vercel URL below, or open `index.html` in any browser. No build step, no dependencies. It opens in dark mode; the button in the top right switches to light and remembers your choice.
+
+## Pages
+
+- **Today**: what you're doing now, weekly targets, the day timeline, today's workout and golf plan
+- **Gym**: weekly training plan and guided workouts
+- **SAT**: today's lesson and practice links, plus the week's topics
+- **Week**: the scorecard
+- **Settings**: theme (dark, light or system), lb or kg, rest timer and vibration, backup and restore, clearing data
 
 ## What it does
 
@@ -20,7 +28,7 @@ Progress is saved in your browser (localStorage), so it stays on the device you 
 
 Everything lives in `index.html`. The schedule is the `SCHED` object, exercises are `EX`, the weekly gym plan is `ROUTINE`, golf plans are `GOLF`, and SAT topics are `SAT`. Golf blocks assume about 30 minutes of round-trip driving.
 
-`src/dashboard.html` is the same page without the `<html>`/`<head>` wrapper, used for publishing as a Claude artifact.
+`src/dashboard.html` is the page body; run `python3 build.py` after editing it to regenerate `index.html`.
 
 ## Credits
 
