@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f10">
+<meta name="robots" content="noindex">
+<title>Life Planner</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root { --bg: #141415; --card: #19191b; --raised: #232325; --text: #ededed; --text-2: #a1a1a6; --muted: #85858b; --line: rgba(237,237,237,.08); --line-2: rgba(237,237,237,.14); --accent: #4cb07a; --on-accent: #0f0f10; --neg: #e5484d; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 14px/20px "Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+  display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+form { width: min(360px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+.brand { font-size: 17px; font-weight: 600; }
+h1 { font-size: 24px; line-height: 30px; font-weight: 500; margin: 0; }
+p { margin: 0; color: var(--text-2); }
+label { color: var(--text-2); font-size: 13px; }
+input { width: 100%; height: 44px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--raised); color: var(--text); padding: 0 12px; font: 16px "Instrument Sans", system-ui, sans-serif; margin-top: 6px; }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { height: 44px; border: 0; border-radius: 10px; background: var(--accent); color: var(--on-accent); font: 500 15px "Instrument Sans", system-ui, sans-serif; cursor: pointer; }
+button[disabled] { opacity: .6; }
+.err { color: var(--neg); min-height: 20px; font-size: 13px; }
+</style>
+</head>
+<body>
+<form id="f">
+  <div class="brand">Life</div>
+  <div><h1>Sign in</h1><p>This planner is private. Enter your passcode to open it.</p></div>
+  <label for="pc">Passcode<input id="pc" name="passcode" type="password" autocomplete="current-password" required autofocus></label>
+  <button id="go" type="submit">Open planner</button>
+  <div class="err" id="err" role="alert"></div>
+</form>
+<script>
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const go = document.getElementById('go'), err = document.getElementById('err');
+  go.disabled = true; go.textContent = 'Checking'; err.textContent = '';
+  try {
+    const r = await fetch('/api/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ passcode: document.getElementById('pc').value }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { location.replace('/'); return; }
+    err.textContent = j.error || 'Could not sign in. Try again';
+  } catch (x) { err.textContent = 'No connection. Check your internet and try again'; }
+  go.disabled = false; go.textContent = 'Open planner';
+});
+</script>
+</body>
+</html>

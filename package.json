@@ -1,0 +1,8 @@
+{
+  "name": "life-planner",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "1.0.2"
+  }
+}

@@ -26,6 +26,12 @@ Progress saves automatically in your browser (localStorage) and stays there betw
 
 On a phone, open the site and add it to your Home Screen (Safari: Share → Add to Home Screen). It then opens like an app, works offline, and Safari will not clear its data.
 
+## Private access and sync
+
+The hosted site is private. Every page sits behind a passcode (`APP_PASSCODE` in the Vercel project's environment variables); signing in sets a cookie that lasts a year. `middleware.js` checks it on every request, and `api/login.js` / `api/logout.js` handle signing in and out.
+
+Your data syncs between devices through a Neon Postgres database: `api/data.js` keeps the whole planner in one row and the newest copy wins. The database connection comes from `DATABASE_URL`, which Vercel adds when a Neon database is connected to the project. Without it the planner still works, saving on each device only.
+
 ## Editing the schedule
 
 Everything lives in `index.html`. The schedule is the `SCHED` object, exercises are `EX`, the weekly gym plan is `ROUTINE`, golf plans are `GOLF`, and SAT topics are `SAT`. Golf blocks assume about 30 minutes of round-trip driving.

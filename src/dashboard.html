@@ -481,6 +481,7 @@ section { scroll-margin-top: 24px; }
       </nav>
     </div>
     <div class="side-foot">
+      <div id="syncLine" hidden><svg class="i"><use href="#i-check"/></svg><span></span></div>
       <div><svg class="i"><use href="#i-moon"/></svg><span id="sideSleep">Lights out 10:00 PM</span></div>
       <div><svg class="i"><use href="#i-flag"/></svg><span>4 lifts + cardio · 4 golf · 7 h SAT</span></div>
     </div>
@@ -733,7 +734,11 @@ section { scroll-margin-top: 24px; }
   let store = { done: {} };
   try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign({ done: {} }, JSON.parse(raw)); } catch (e) {}
   store.prefs = Object.assign({ unit: 'lb', restTimer: true, vibrate: true }, store.prefs);
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  function save() {
+    store.updatedAt = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
+    if (typeof schedulePush === 'function') schedulePush();
+  }
   // Ask the browser to keep this site's data instead of clearing it when space runs low
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
   const isDone = k => !!store.done[k];
@@ -1460,11 +1465,17 @@ section { scroll-margin-top: 24px; }
         <div class="pref"><div class="lab"><b>Erase everything</b><small>Check marks, workout history and settings. This cannot be undone</small></div>
           <button class="btn danger sm" data-data="erase">Erase</button></div>
       </section>
+      <section class="card" id="acctCard" hidden><h2>Account and sync</h2>
+        <div class="pref"><div class="lab"><b>Sync</b><small id="syncInfo">Checking</small></div>
+          <button class="btn secondary sm" data-data="syncnow">Sync now</button></div>
+        <div class="pref"><div class="lab"><b>Signed in</b><small>Only someone with your passcode can open this planner. You stay signed in on this device for a year</small></div>
+          <button class="btn secondary sm" data-data="logout">Sign out</button></div>
+      </section>
       <section class="card"><h2>About</h2>
         <div class="pref"><div class="lab"><b>Life week planner</b><small>School, SAT, gym, golf and app work around 8 hours of sleep. Design pass with unslop by @heydamir. Workout flow modeled on openGym</small></div>
           <a class="btn secondary sm" href="https://github.com/eigenstarr/life-e" target="_blank" rel="noopener">${icon('github')}GitHub</a></div>
       </section>`;
-    persistInfo();
+    persistInfo(); showSync();
   }
   function persistInfo() {
     const el = document.getElementById('persistInfo'); if (!el) return;
@@ -1497,10 +1508,14 @@ section { scroll-margin-top: 24px; }
       try {
         const o = JSON.parse(document.getElementById('backupText').value);
         if (!o || o.app !== 'life-planner' || !o.store || typeof o.store.done !== 'object') throw new Error();
-        store = o.store; store.logs = store.logs || {}; store.hist = store.hist || []; store.prefs = Object.assign({}, PREF_DEFAULTS, store.prefs);
+        store = o.store; store.synced = true; store.logs = store.logs || {}; store.hist = store.hist || []; store.prefs = Object.assign({}, PREF_DEFAULTS, store.prefs);
         save(); if (o.theme) setTheme(o.theme);
         render(); renderGym(); renderPrefs(); dataMsg('Backup restored');
       } catch (err) { dataMsg('That text is not a backup from this planner. Copy the whole backup and paste it again', true); }
+    } else if (d === 'syncnow') {
+      pull(true);
+    } else if (d === 'logout') {
+      fetch('/api/logout', { method: 'POST' }).finally(() => { location.href = '/login.html'; });
     } else if (d === 'clearweek') {
       arm(b, 'Tap again to clear', () => {
         const now = new Date(), keys = ORDER.map(x => keyOf(dateFor(x, now)) + ':');
@@ -1509,7 +1524,7 @@ section { scroll-margin-top: 24px; }
       });
     } else if (d === 'erase') {
       arm(b, 'Tap again to erase', () => {
-        store = { done: {}, logs: {}, hist: [], prefs: Object.assign({}, PREF_DEFAULTS) };
+        store = { done: {}, logs: {}, hist: [], prefs: Object.assign({}, PREF_DEFAULTS), synced: true };
         rest = null; save(); setTheme('dark'); render(); renderGym(); renderPrefs(); dataMsg('Everything is erased');
       });
     }
@@ -1543,5 +1558,65 @@ section { scroll-margin-top: 24px; }
   renderGym();
   route();
   setInterval(render, 30000);
+
+  /* ---------- Sync with the private Neon database (hosted site only) ---------- */
+  // The whole store is one JSON document; the newest copy wins. A device that has never synced
+  // takes the server's copy first, so a fresh phone can't wipe your data.
+  const sync = { on: false, state: 'local', last: 0, timer: null, dirty: false, busy: false };
+  function agoText(t) { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; }
+  function showSync() {
+    const line = document.getElementById('syncLine'), info = document.getElementById('syncInfo'), card = document.getElementById('acctCard');
+    const text = { ok: 'Synced ' + agoText(sync.last), offline: 'Offline, will sync when you are back online', nodb: 'Database not connected yet. Saving on this device only', error: 'Sync failed, will retry', saving: 'Saving' }[sync.state];
+    if (line) { line.hidden = sync.state === 'local'; line.querySelector('span').textContent = sync.state === 'ok' ? 'Synced' : sync.state === 'nodb' ? 'This device only' : sync.state === 'saving' ? 'Saving' : 'Offline'; }
+    if (card) card.hidden = sync.state === 'local';
+    if (info && text) info.textContent = text + (sync.state === 'ok' ? '. Your phone and computer share the same data' : '');
+  }
+  function applyRemote(d) {
+    store = d; store.done = store.done || {}; store.logs = store.logs || {}; store.hist = store.hist || [];
+    store.prefs = Object.assign({ unit: 'lb', restTimer: true, vibrate: true }, store.prefs); store.synced = true;
+    try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
+    rest = store.rest && (store.rest.paused || store.rest.end > Date.now()) ? store.rest : null;
+    render(); renderGym(); if (currentView() === 'preferences') renderPrefs();
+  }
+  async function pull(force) {
+    if (sync.busy) return; sync.busy = true;
+    try {
+      const r = await fetch('/api/data', { credentials: 'same-origin', cache: 'no-store' });
+      if (r.status === 401) { location.href = '/login.html'; return; }
+      if (r.status === 503) { sync.state = 'nodb'; return; }
+      if (!r.ok || !(r.headers.get('content-type') || '').includes('json')) { sync.state = sync.on ? 'error' : 'local'; return; }
+      const j = await r.json(); sync.on = true;
+      const remoteAt = j.updatedAt || 0, localAt = store.updatedAt || 0;
+      if (j.data && (!store.synced || remoteAt > localAt)) applyRemote(j.data);
+      else if (!j.data || localAt > remoteAt || force) { store.synced = true; sync.busy = false; await push(); return; }
+      sync.state = 'ok'; sync.last = Date.now();
+    } catch (e) { sync.state = sync.on ? 'offline' : 'local'; }
+    finally { sync.busy = false; showSync(); }
+  }
+  async function push() {
+    if (!sync.on) return;
+    clearTimeout(sync.timer); sync.dirty = false; sync.state = 'saving'; showSync();
+    store.synced = true;
+    if (!store.updatedAt) store.updatedAt = Date.now();
+    try {
+      const r = await fetch('/api/data', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ data: store }), keepalive: true });
+      if (r.status === 401) { location.href = '/login.html'; return; }
+      if (r.status === 409) { const j = await r.json(); applyRemote(j.data); sync.state = 'ok'; sync.last = Date.now(); }
+      else if (r.status === 503) sync.state = 'nodb';
+      else if (!r.ok) throw new Error(r.status);
+      else { sync.state = 'ok'; sync.last = Date.now(); }
+    } catch (e) { sync.dirty = true; sync.state = navigator.onLine === false ? 'offline' : 'error'; }
+    showSync();
+  }
+  function schedulePush() {
+    if (!sync.on) return;
+    sync.dirty = true; clearTimeout(sync.timer); sync.timer = setTimeout(push, 1200);
+  }
+  addEventListener('online', () => { sync.dirty ? push() : pull(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') pull(); else if (sync.dirty) push();
+  });
+  setInterval(() => { if (sync.dirty && navigator.onLine !== false) push(); showSync(); }, 30000);
+  if (location.protocol === 'https:' || location.hostname === 'localhost') pull();
 })();
 </script>
