@@ -9,7 +9,8 @@ Open `index.html` in any browser. No build step, no dependencies. It opens in da
 - **Now**: the block you are in, time left, and what comes next
 - **Weekly targets**: 5 workouts (4 lifts + cardio), 4 golf sessions, 7 hours of SAT prep, app development blocks
 - **Day timeline**: the full schedule for any day, with a marker for the current time; check off gym, golf, SAT and homework/app blocks
-- **Today's workout**: push, pull, push, pull split (Mon push, Wed pull, Thu push, Sat pull) plus 30 minutes of easy cardio on Friday evening; mobility on rest days and a golf practice plan on golf days
+- **Gym**: a weekly plan (Mon push, Wed pull, Thu push, Fri cardio, Sat pull) with a body map of the muscles each day works. Start a workout and it walks you through it: weights pre-filled from last time, plus/minus steppers for weight and reps, a rest timer between sets, progression hints when you hit the top of the rep range, your best lift per exercise, and live volume. Finishing a workout checks it off in your schedule. The workout flow is modeled on [openGym](https://github.com/DuarteSantos8/openGym) and rebuilt from scratch here; no openGym code is included
+- **Golf**: a practice plan for each golf day
 - **SAT hour**: a topic for each day with a YouTube lesson search, the official Question Bank, Bluebook practice tests and Khan Academy
 - **Week scorecard**: every session for the week in one table, golf-scorecard style
 
@@ -17,7 +18,7 @@ Progress is saved in your browser (localStorage), so it stays on the device you 
 
 ## Editing the schedule
 
-Everything lives in `index.html`. The schedule is the `SCHED` object, the gym program is `WORKOUT`, golf plans are `GOLF`, and SAT topics are `SAT`. Golf blocks assume about 30 minutes of round-trip driving.
+Everything lives in `index.html`. The schedule is the `SCHED` object, exercises are `EX`, the weekly gym plan is `ROUTINE`, golf plans are `GOLF`, and SAT topics are `SAT`. Golf blocks assume about 30 minutes of round-trip driving.
 
 `src/dashboard.html` is the same page without the `<html>`/`<head>` wrapper, used for publishing as a Claude artifact.
 
