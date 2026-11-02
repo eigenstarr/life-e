@@ -2,14 +2,14 @@
 
 A weekly planner dashboard that balances school, homework, SAT prep, gym, golf, app development and free time around 8 hours of sleep.
 
-Open `index.html` in any browser. No build step, no dependencies.
+Open `index.html` in any browser. No build step, no dependencies. It opens in dark mode; the button in the top right switches to light and remembers your choice.
 
 ## What it does
 
 - **Now**: the block you are in, time left, and what comes next
-- **Weekly targets**: 4 gym sessions, 4 golf sessions, 7 hours of SAT prep, app development blocks
+- **Weekly targets**: 5 workouts (4 lifts + cardio), 4 golf sessions, 7 hours of SAT prep, app development blocks
 - **Day timeline**: the full schedule for any day, with a marker for the current time; check off gym, golf, SAT and homework/app blocks
-- **Today's workout**: a 4-day gym program built around golf (push, legs, pull, full-body power), mobility on non-gym days, and a golf practice plan on golf days
+- **Today's workout**: push, pull, push, pull split (Mon push, Wed pull, Thu push, Sat pull) plus 30 minutes of easy cardio on Friday evening; mobility on rest days and a golf practice plan on golf days
 - **SAT hour**: a topic for each day with a YouTube lesson search, the official Question Bank, Bluebook practice tests and Khan Academy
 - **Week scorecard**: every session for the week in one table, golf-scorecard style
 

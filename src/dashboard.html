@@ -12,7 +12,7 @@
   --accent: #1f7a4a; --on-accent: #ffffff;
   --pos: #16a34a;
   --c-school: #b4b4ba; --c-routine: #e1e1e5; --c-gym: #c2563a; --c-golf: #2f8a57;
-  --c-sat: #3a5fc8; --c-work: #c48a14; --c-free: #c9b48c; --c-sleep: #3f3f46;
+  --c-sat: #3a5fc8; --c-cardio: #b0476e; --c-work: #c48a14; --c-free: #c9b48c; --c-sleep: #3f3f46;
   --seg-ink: #ffffff; --seg-ink-soft: #3f3f46;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -26,7 +26,7 @@
     --line: rgba(237, 237, 237, 0.08); --line-2: rgba(237, 237, 237, 0.14);
     --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a;
     --c-school: #55555c; --c-routine: #313135; --c-gym: #df7353; --c-golf: #4cb07a;
-    --c-sat: #7393f2; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
+    --c-sat: #7393f2; --c-cardio: #e07aa0; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
     --seg-ink: #0f0f10; --seg-ink-soft: #d4d4d8;
     --shadow: none; color-scheme: dark;
   }
@@ -37,7 +37,7 @@
   --line: rgba(237, 237, 237, 0.08); --line-2: rgba(237, 237, 237, 0.14);
   --accent: #4cb07a; --on-accent: #0f0f10; --pos: #4cc38a;
   --c-school: #55555c; --c-routine: #313135; --c-gym: #df7353; --c-golf: #4cb07a;
-  --c-sat: #7393f2; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
+  --c-sat: #7393f2; --c-cardio: #e07aa0; --c-work: #e2ac42; --c-free: #bfa97f; --c-sleep: #232326;
   --seg-ink: #0f0f10; --seg-ink-soft: #d4d4d8;
   --shadow: none; color-scheme: dark;
 }
@@ -89,6 +89,13 @@ header.top { display: flex; align-items: flex-end; justify-content: space-betwee
 h1 { font-size: 32px; line-height: 1.15; font-weight: 500; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 h1 .yr { color: var(--muted); }
 .sub { color: var(--text-2); margin-top: 8px; }
+.top-right { display: flex; align-items: center; gap: 12px; }
+.theme-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 8px;
+  font: inherit; font-weight: 500; color: var(--text-2); background: var(--raised); border: 1px solid var(--line); cursor: pointer;
+  transition: border-color 150ms var(--ease), color 150ms var(--ease);
+}
+.theme-btn:hover { color: var(--text); border-color: var(--line-2); }
 .clock { font-family: var(--mono); color: var(--text-2); font-size: 13px; font-variant-numeric: tabular-nums; }
 
 h2 { font-size: 15px; font-weight: 500; margin: 0; line-height: 20px; }
@@ -296,7 +303,7 @@ section { scroll-margin-top: 24px; }
     </div>
     <div class="side-foot">
       <div><svg class="i"><use href="#i-moon"/></svg><span id="sideSleep">Lights out 10:00 PM</span></div>
-      <div><svg class="i"><use href="#i-flag"/></svg><span>4 gym · 4 golf · 7 h SAT</span></div>
+      <div><svg class="i"><use href="#i-flag"/></svg><span>4 lifts + cardio · 4 golf · 7 h SAT</span></div>
     </div>
   </aside>
 
@@ -307,7 +314,10 @@ section { scroll-margin-top: 24px; }
           <h1 id="title">Today</h1>
           <div class="sub" id="subtitle"></div>
         </div>
-        <div class="clock" id="clock"></div>
+        <div class="top-right">
+          <div class="clock" id="clock"></div>
+          <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch theme"></button>
+        </div>
       </header>
 
       <div class="summary">
@@ -354,6 +364,7 @@ section { scroll-margin-top: 24px; }
   const CAT = {
     school:  { name: 'School', short: 'School' },
     gym:     { name: 'Gym', short: 'Gym' },
+    cardio:  { name: 'Cardio', short: 'Cardio' },
     golf:    { name: 'Golf', short: 'Golf' },
     sat:     { name: 'SAT', short: 'SAT' },
     work:    { name: 'Homework / app', short: 'HW / app' },
@@ -361,7 +372,7 @@ section { scroll-margin-top: 24px; }
     routine: { name: 'Meals and breaks', short: '' },
     sleep:   { name: 'Sleep', short: 'Sleep' },
   };
-  const TRACK = ['gym', 'golf', 'sat', 'work'];
+  const TRACK = ['gym', 'cardio', 'golf', 'sat', 'work'];
 
   const B = (s, e, label, cat) => ({ s: tm(s), e: tm(e), label, cat });
   function tm(x) { const [h, m] = x.split(':').map(Number); return h * 60 + m; }
@@ -401,7 +412,8 @@ section { scroll-margin-top: 24px; }
       B('18:40', '19:40', 'SAT studying', 'sat'),
       B('19:40', '20:30', 'Dinner', 'routine'),
       B('20:30', '21:30', 'Homework or app development', 'work'),
-      B('21:30', '22:30', 'Free time and relaxation', 'free'),
+      B('21:30', '22:00', 'Cardio, 30 minutes', 'cardio'),
+      B('22:00', '22:30', 'Free time and relaxation', 'free'),
       B('22:30', '32:00', 'Sleep', 'sleep'),
     ],
     6: [
@@ -436,52 +448,57 @@ section { scroll-margin-top: 24px; }
   Object.values(SCHED).forEach(list => list.forEach((b, i) => b.i = i));
 
   const DAY_NOTE = {
-    5: 'Friday bedtime is ideally 10:00 to 11:00 PM. Try not to shift your sleep schedule too much.',
+    5: 'Keep cardio easy so you can wind down after. Friday bedtime is ideally 10:00 to 11:00 PM. Try not to shift your sleep schedule too much.',
     6: 'Bedtime around 11:00 PM still gives you 9 hours before an 8:00 AM wake-up.',
   };
   const GOLF_NOTE = 'Golf blocks assume about 30 minutes of round-trip driving. Adjust if the drive is longer.';
 
-  /* Gym program: 4 days, built around golf (rotation, hips, grip) */
+  /* Training split: push, pull, push, pull, plus cardio on Friday */
   const WORKOUT = {
-    1: { name: 'Upper body push and core', focus: 'Chest, shoulders and triceps, finishing with anti-rotation core work', ex: [
+    1: { name: 'Push A', focus: 'Chest, shoulders and triceps, heavy on the main lifts', ex: [
       ['Warm-up', 'Bike or rower, then band pull-aparts and arm circles', '5 min'],
       ['Bench press', 'Leave 1 to 2 reps in the tank', '4 × 6–8'],
       ['Seated dumbbell shoulder press', '', '3 × 8–10'],
       ['Incline dumbbell press', '', '3 × 10'],
       ['Dips or close-grip push-ups', '', '3 × 10–12'],
       ['Lateral raise', 'Light, slow on the way down', '3 × 12–15'],
-      ['Pallof press', 'Resist the twist, brace like address', '3 × 10 each side'],
+      ['Pallof press', 'Resist the twist, brace like at address', '3 × 10 each side'],
     ]},
-    3: { name: 'Lower body', focus: 'Legs and hips for a stable base and more speed through the ball', ex: [
-      ['Warm-up', 'Hip circles, bodyweight squats, leg swings', '5 min'],
-      ['Back squat or goblet squat', '', '4 × 6–8'],
-      ['Romanian deadlift', 'Feel the hamstrings, flat back', '3 × 8'],
-      ['Walking lunge', '', '3 × 10 each leg'],
-      ['Lying leg curl', '', '3 × 12'],
-      ['Standing calf raise', '', '3 × 15'],
-      ['Dead bug', 'Slow, low back stays down', '3 × 10 each side'],
-    ]},
-    4: { name: 'Upper body pull and rotation', focus: 'Back, biceps and grip, plus rotational power for the swing', ex: [
+    3: { name: 'Pull A', focus: 'Back and biceps, with rotation work for the swing', ex: [
       ['Warm-up', 'Band rows, open books, thoracic rotations', '5 min'],
       ['Pull-ups', 'Use the assisted machine or a band if needed', '4 × 6–8'],
-      ['One-arm dumbbell row', '', '3 × 10 each arm'],
+      ['Barbell row', 'Flat back, pull to the lower ribs', '3 × 8'],
       ['Lat pulldown', '', '3 × 10'],
       ['Face pull', 'Good for posture and shoulder health', '3 × 15'],
       ['Hammer curl', '', '3 × 10'],
       ['Cable woodchop', 'Rotate from the hips, not the arms', '3 × 10 each side'],
     ]},
-    6: { name: 'Full body power', focus: 'Explosive work after morning golf, keep the quality high and stop before you get sloppy', ex: [
-      ['Warm-up', 'Light jog, world’s greatest stretch, hip openers', '5 min'],
-      ['Trap bar deadlift', '', '4 × 5'],
-      ['Med ball rotational throw', 'Into a wall, both directions', '3 × 6 each side'],
-      ['Box jump', 'Step down, reset every rep', '3 × 5'],
-      ['Dumbbell split squat', '', '3 × 8 each leg'],
-      ['Push-ups', 'Stop one rep before failure', '3 × max'],
+    4: { name: 'Push B', focus: 'Same muscles as Monday from different angles, a bit lighter and higher reps', ex: [
+      ['Warm-up', 'Band pull-aparts, push-ups, arm circles', '5 min'],
+      ['Incline barbell or dumbbell press', '', '4 × 8'],
+      ['Arnold press', '', '3 × 10'],
+      ['Machine chest press or push-ups', '', '3 × 12'],
+      ['Cable fly', 'Squeeze at the middle', '3 × 12–15'],
+      ['Overhead triceps extension', 'Cable or dumbbell', '3 × 12'],
+      ['Dead bug', 'Slow, low back stays down', '3 × 10 each side'],
+    ]},
+    5: { name: 'Cardio', focus: 'Easy, steady effort. You should be able to talk in full sentences the whole time', cardio: true, ex: [
+      ['Warm-up walk', '', '5 min'],
+      ['Easy jog, bike or incline walk', 'Steady pace, nose breathing if you can', '20 min'],
+      ['Cool-down walk and stretch', 'Hips, hamstrings, calves', '5 min'],
+    ]},
+    6: { name: 'Pull B', focus: 'Back, grip and posterior chain after morning golf', ex: [
+      ['Warm-up', 'Light jog, world’s greatest stretch, band rows', '5 min'],
+      ['Trap bar or Romanian deadlift', 'Stop before form breaks down', '4 × 5'],
+      ['Chin-ups', 'Palms facing you', '3 × 6–8'],
+      ['Seated cable row', '', '3 × 10'],
+      ['One-arm dumbbell row', '', '3 × 10 each arm'],
+      ['Rear delt fly', '', '3 × 15'],
+      ['Barbell curl', '', '3 × 10'],
       ['Farmer carry', 'Heavy, tall posture, grip strength', '3 × 30 m'],
-      ['Plank', '', '3 × 45 s'],
     ]},
   };
-  const MOBILITY = { name: 'Mobility', focus: 'No gym today. Ten minutes keeps your hips and upper back loose for the swing', ex: [
+  const MOBILITY = { name: 'Mobility', focus: 'No workout today. Ten minutes keeps your hips and upper back loose for the swing', ex: [
     ['90/90 hip switches', '', '2 × 8 each side'],
     ['Open books', 'Thoracic rotation on your side', '2 × 8 each side'],
     ['Cat-cow', '', '2 × 10'],
@@ -536,6 +553,24 @@ section { scroll-margin-top: 24px; }
     ['SupertutorTV on YouTube', 'Reading and writing strategy', yt('SupertutorTV digital SAT reading writing')],
     ['Desmos calculator', 'Practice with the calculator built into the test', 'https://www.desmos.com/calculator'],
   ];
+
+  /* Theme: dark by default, switchable, remembered in this browser */
+  const THEME_KEY = 'life-planner-theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(THEME_KEY) || 'dark'; } catch (e) {}
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('themeBtn');
+    const next = theme === 'dark' ? 'light' : 'dark';
+    btn.innerHTML = `<svg class="i"><use href="#i-${theme === 'dark' ? 'moon' : 'sun'}"/></svg>${theme === 'dark' ? 'Dark' : 'Light'}`;
+    btn.setAttribute('aria-label', `Theme: ${theme}. Switch to ${next}`);
+  }
+  applyTheme();
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+    applyTheme();
+  });
 
   /* Storage: per-browser convenience, safe if blocked */
   const KEY = 'life-planner-v1';
@@ -619,7 +654,7 @@ section { scroll-margin-top: 24px; }
     ORDER.forEach(dow => SCHED[dow].forEach(b => {
       const k = blockKey(dow, b.i, now);
       const add = (name, amt) => { out[name][1] += amt; if (isDone(k)) out[name][0] += amt; else out[name][2].push(SHORT[dow]); };
-      if (b.cat === 'gym') add('gym', 1);
+      if (b.cat === 'gym' || b.cat === 'cardio') add('gym', 1);
       if (b.cat === 'golf') add('golf', 1);
       if (b.cat === 'sat') add('sat', (b.e - b.s) / 60);
       if (isApp(b)) add('app', 1);
@@ -637,7 +672,7 @@ section { scroll-margin-top: 24px; }
         <div class="chg ${ok ? 'ok' : ''}">${ok ? 'Target hit this week' : rest}</div></div>`;
     };
     document.getElementById('stats').innerHTML =
-      card('Gym sessions', c.gym[0], 4, '', c.gym[2]) +
+      card('Workouts', c.gym[0], 5, '', c.gym[2]) +
       card('Golf sessions', c.golf[0], 4, '', c.golf[2]) +
       card('SAT prep', c.sat[0], 7, ' h', c.sat[2]) +
       `<div class="card stat"><div class="lab">App development</div>
@@ -655,7 +690,7 @@ section { scroll-margin-top: 24px; }
     const dow = selected, list = SCHED[dow], isToday = dow === now.getDay();
     const m = now.getHours() * 60 + now.getMinutes();
     const todayIdx = ORDER.indexOf(now.getDay()), selIdx = ORDER.indexOf(dow);
-    const main = list.filter(b => b.cat === 'gym' || b.cat === 'golf').map(b => CAT[b.cat].name).join(' and ');
+    const main = list.filter(b => b.cat === 'gym' || b.cat === 'cardio' || b.cat === 'golf').map(b => CAT[b.cat].name).join(' and ');
     document.getElementById('dayTitle').textContent = `${isToday ? 'Today' : DAY[dow]} · ${main}`;
 
     const span = AXIS_END - AXIS_START;
@@ -682,7 +717,7 @@ section { scroll-margin-top: 24px; }
     document.getElementById('stripWrap').innerHTML =
       `<div class="strip" role="img" aria-label="${DAY[dow]} timeline from 6 AM to midnight">${html}</div><div class="axis">${ticks}</div>${pin}`;
 
-    document.getElementById('legend').innerHTML = ['school', 'gym', 'golf', 'sat', 'work', 'free', 'routine', 'sleep']
+    document.getElementById('legend').innerHTML = ['school', 'gym', 'cardio', 'golf', 'sat', 'work', 'free', 'routine', 'sleep']
       .filter(c => list.some(b => b.cat === c) || c === 'sleep')
       .map(c => `<span><span class="dot" style="--c:var(--c-${c})"></span>${CAT[c].name}</span>`).join('');
 
@@ -719,15 +754,15 @@ section { scroll-margin-top: 24px; }
     }).join('');
     const golf = g ? `<div class="sub-h">${icon('flag')}Golf · ${g.name}</div>
       <ol class="steps">${g.steps.map(s => `<li><span class="mono">${s[0]}</span><span>${esc(s[1])}</span></li>`).join('')}</ol>` : '';
-    const gymTime = SCHED[dow].find(b => b.cat === 'gym');
+    const gymTime = SCHED[dow].find(b => b.cat === 'gym' || b.cat === 'cardio');
     document.getElementById('training').innerHTML = `
       <div class="card-head"><h2>${isToday ? 'Today’s workout' : DAY[dow] + '’s workout'}</h2>
-        <span class="meta">${gymTime ? 'Gym ' + rangeLabel(gymTime) : 'Rest day from the gym'}</span></div>
+        <span class="meta">${gymTime ? (gymTime.cat === 'cardio' ? 'Cardio ' : 'Gym ') + rangeLabel(gymTime) : 'Rest day from the gym'}</span></div>
       <div class="topic">${w.name}</div>
       <div class="focus">${esc(w.focus)}</div>
       ${exRows}
       ${golf}
-      ${WORKOUT[dow] ? '<div class="note">Rest 60 to 90 seconds between sets. Add a little weight when you hit the top of the rep range on every set.</div>' : ''}`;
+      ${WORKOUT[dow] && !w.cardio ? '<div class="note">Rest 60 to 90 seconds between sets. Add a little weight when you hit the top of the rep range on every set.</div>' : ''}`;
   }
 
   function renderSat(now) {
@@ -749,14 +784,14 @@ section { scroll-margin-top: 24px; }
   }
 
   function renderWeek(now) {
-    const cols = [['gym', 'Gym'], ['golf', 'Golf'], ['sat', 'SAT'], ['work', 'Homework / app']];
+    const cols = [['gym', 'Workout'], ['golf', 'Golf'], ['sat', 'SAT'], ['work', 'Homework / app']];
     const today = now.getDay();
     const head = `<thead><tr><th>Day</th>${cols.map(c => `<th>${c[1]}</th>`).join('')}<th>Lights out</th></tr></thead>`;
     const totals = { gym: [0, 0], golf: [0, 0], sat: [0, 0], work: [0, 0] };
     const rows = ORDER.map(dow => {
       const d = dateFor(dow, now), list = SCHED[dow];
       const cells = cols.map(([cat]) => {
-        const bs = list.filter(b => b.cat === cat);
+        const bs = list.filter(b => b.cat === cat || (cat === 'gym' && b.cat === 'cardio'));
         if (!bs.length) return '<td><span class="dash">–</span></td>';
         return '<td>' + bs.map(b => {
           const k = blockKey(dow, b.i, now), on = isDone(k);
@@ -768,7 +803,7 @@ section { scroll-margin-top: 24px; }
       const sl = list[list.length - 1];
       return `<tr class="${dow === today ? 'is-today' : ''}"><td><b>${SHORT[dow]}</b><span>${d.getDate()}</span></td>${cells}<td class="mono" style="color:var(--text-2);font-size:12px">${fmt(sl.s)}</td></tr>`;
     }).join('');
-    const tgt = { gym: 4, golf: 4, sat: 7, work: totals.work[1] };
+    const tgt = { gym: 5, golf: 4, sat: 7, work: totals.work[1] };
     const foot = `<tfoot><tr><td>Total</td>${cols.map(([c]) => `<td>${totals[c][0]} / ${tgt[c]}${c === 'sat' ? ' h' : ''}</td>`).join('')}<td></td></tr></tfoot>`;
     document.getElementById('score').innerHTML = head + '<tbody>' + rows + '</tbody>' + foot;
   }
