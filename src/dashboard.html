@@ -734,6 +734,8 @@ section { scroll-margin-top: 24px; }
   try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign({ done: {} }, JSON.parse(raw)); } catch (e) {}
   store.prefs = Object.assign({ unit: 'lb', restTimer: true, vibrate: true }, store.prefs);
   function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  // Ask the browser to keep this site's data instead of clearing it when space runs low
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
   const isDone = k => !!store.done[k];
   function setDone(k, v) { if (v) store.done[k] = 1; else delete store.done[k]; save(); render(); }
 
@@ -1081,7 +1083,7 @@ section { scroll-margin-top: 24px; }
   // store.sess: { d, dow, t0, cur, sets: { exId: [{ a, b, done }] }, end }
   const todayKey = () => keyOf(new Date());
   let gymSel = null;
-  let rest = null;                    // { end, total, paused, left }
+  let rest = store.rest && (store.rest.paused || store.rest.end > Date.now()) ? store.rest : null;   // { end, total, paused, left }, kept across reloads
   let wake = null;
 
   function lastLog(id) {
@@ -1302,6 +1304,7 @@ section { scroll-margin-top: 24px; }
   }
   function tickRest() {
     const dock = document.getElementById('restDock');
+    if ((store.rest || null) !== rest) { store.rest = rest; save(); }
     document.body.classList.toggle('resting', !!rest);
     if (!rest) { dock.hidden = true; return; }
     const left = rest.paused ? rest.left : (rest.end - Date.now()) / 1000;
@@ -1329,7 +1332,7 @@ section { scroll-margin-top: 24px; }
       if (rest.paused) rest.left = Math.max(0, rest.left + d); else rest.end += d * 1000;
       rest.total = Math.max(rest.total + d, 15); rest.buzzed = false;
     }
-    tickRest();
+    save(); tickRest();
   });
 
   const gymEl = document.getElementById('gym');
@@ -1446,6 +1449,7 @@ section { scroll-margin-top: 24px; }
         <div class="pref"><div class="lab"><b>Vibrate when rest ends</b><small>On phones that support it</small></div>${sw('vibrate', P.vibrate, 'Vibrate when rest ends')}</div>
       </section>
       <section class="card"><h2>Your data</h2>
+        <div class="pref"><div class="lab"><b>Saving</b><small id="persistInfo">Everything you check off, log or change saves automatically in this browser</small></div></div>
         <div class="pref stack"><div class="lab"><b>Back up</b><small>Everything is saved in this browser only. Copy a backup to move it to another device or keep it safe</small></div>
           <div class="row-btns"><button class="btn secondary sm" data-data="copy">Copy backup</button></div>
           <textarea id="backupText" placeholder="Paste a backup here to restore it" aria-label="Backup text"></textarea>
@@ -1460,6 +1464,17 @@ section { scroll-margin-top: 24px; }
         <div class="pref"><div class="lab"><b>Life week planner</b><small>School, SAT, gym, golf and app work around 8 hours of sleep. Design pass with unslop by @heydamir. Workout flow modeled on openGym</small></div>
           <a class="btn secondary sm" href="https://github.com/eigenstarr/life-e" target="_blank" rel="noopener">${icon('github')}GitHub</a></div>
       </section>`;
+    persistInfo();
+  }
+  function persistInfo() {
+    const el = document.getElementById('persistInfo'); if (!el) return;
+    let ok = true; try { localStorage.setItem('life-planner-probe', '1'); localStorage.removeItem('life-planner-probe'); } catch (e) { ok = false; }
+    if (!ok) { el.textContent = 'This browser is blocking storage, so nothing will be kept after you close it. Turn off private browsing to save your progress'; return; }
+    try {
+      navigator.storage.persisted().then(p => {
+        el.textContent = p ? 'Saves automatically and the browser has agreed to keep it' : 'Saves automatically in this browser. On an iPhone, add this page to your Home Screen so Safari never clears it';
+      }).catch(() => {});
+    } catch (e) {}
   }
   function dataMsg(t, err) { const m = document.getElementById('dataMsg'); if (m) { m.textContent = t; m.classList.toggle('err', !!err); } }
   function arm(btn, label, fn) {

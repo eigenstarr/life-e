@@ -22,7 +22,9 @@ Live at the Vercel URL below, or open `index.html` in any browser. No build step
 - **SAT hour**: a topic for each day with a YouTube lesson search, the official Question Bank, Bluebook practice tests and Khan Academy
 - **Week scorecard**: every session for the week in one table, golf-scorecard style
 
-Progress is saved in your browser (localStorage), so it stays on the device you use.
+Progress saves automatically in your browser (localStorage) and stays there between visits, including an unfinished workout and a running rest timer. Each device keeps its own copy; use Settings → Copy backup / Restore to move data between devices.
+
+On a phone, open the site and add it to your Home Screen (Safari: Share → Add to Home Screen). It then opens like an app, works offline, and Safari will not clear its data.
 
 ## Editing the schedule
 

@@ -1,0 +1,15 @@
+{
+  "name": "Life Planner",
+  "short_name": "Life",
+  "description": "Weekly planner for school, SAT prep, gym, golf and app development around 8 hours of sleep",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#141415",
+  "theme_color": "#0f0f10",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
